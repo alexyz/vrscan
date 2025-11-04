@@ -21,7 +21,7 @@ public class Main2627 {
         byte[] roms = Roms.loadPolygons(romDir);
         int[] romWords = Roms.swap32(roms);
 
-        List<DL> lists = Polygons.loadLists(romWords);
+        List<DL> lists = Polygons.loadDisplayLists(romWords);
 
 
         System.out.println("paralists.size=" + lists.size());

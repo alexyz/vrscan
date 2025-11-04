@@ -10,7 +10,7 @@ import java.io.File;
 public class BinJF extends JFrame {
 
     public static void main(String[] args) throws Exception {
-        File romDir = new File("E:\\MYBOOK\\software\\mame0279\\roms\\vr");
+        File romDir = new File(args[0]);
         //byte[] data = Roms.intsToBytesBe(Roms.swap32(Roms.loadPolygons(romDir)));
 
         // looks like faint images.
@@ -22,7 +22,9 @@ public class BinJF extends JFrame {
         // s=156 and s=160 has very structured data
         // s=164 has a faint image
         // 917,504 s 16 has a clear look up table
-        //byte[] data = Roms.loadMainCpu1(romDir);
+        // E0000 (917504-969088) possible start of DL+TA
+        // F2A90 (993936-end) possible start of colours (also tiles)
+        byte[] data = Roms.loadMainCpu1(romDir);
 
         // lots of small structure arrays
         // 18 has array
@@ -38,7 +40,7 @@ public class BinJF extends JFrame {
         // o 2,097,152 = acro
         // o 2,883,584 - BF
         // each track has large 16 byte LUT -
-        byte[] data = Roms.loadMainCpu3(romDir);
+        //byte[] data = Roms.loadMainCpu3(romDir);
 
         // 64 byte lookup tables?
         //byte[] data = Roms.intsToBytesBe(Roms.swap32(Roms.loadTgpData(romDir)));

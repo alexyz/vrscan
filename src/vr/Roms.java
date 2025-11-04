@@ -206,9 +206,13 @@ public class Roms {
     private static byte[] loadRomsAlt(File romDir, String[] names, int numBytes) throws IOException {
         System.out.println("load " + Arrays.toString(names) + " nb " + numBytes);
         List<File> files = Arrays.asList(names).stream().map(s -> new File(romDir, s)).toList();
+        if (files.stream().anyMatch(f -> !f.isFile())) {
+            throw new RuntimeException("missing files: " + Arrays.toString(names));
+        }
+
         int[] fileLengths = files.stream().mapToInt(f -> (int) f.length()).distinct().toArray();
         if (fileLengths.length != 1 || fileLengths[0] == 0) {
-            throw new RuntimeException();
+            throw new RuntimeException("invalid files: " + Arrays.toString(names));
         }
 
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(fileLengths[0] * files.size())) {

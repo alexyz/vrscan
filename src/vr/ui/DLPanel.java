@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Vector;
 
 public class DLPanel extends JPanel {
 
@@ -20,12 +21,17 @@ public class DLPanel extends JPanel {
 
         @Override
         public String toString() {
-            return String.format("DL %x (%d polys)", dl.position, dl.paras.size());
+            if (dl != null) {
+                return String.format("DL %x (%d polys)", dl.position, dl.paras.size());
+            } else {
+                return "*";
+            }
         }
     }
 
     private final JComboBox<DLCI> dlCombo = new JComboBox<>();
     private final JTextArea area = new JTextArea();
+    private Scene s;
 
     public DLPanel() {
         super(new BorderLayout());
@@ -44,10 +50,13 @@ public class DLPanel extends JPanel {
 
 
     public void setScene(Scene s) {
-        DLCI[] list = s.lists.stream().map(l -> new DLCI(l)).toArray(i -> new DLCI[i]);
-        dlCombo.setModel(new DefaultComboBoxModel<DLCI>(list));
-        dlCombo.getModel().setSelectedItem(list[0]);
-        updateArea(s.lists.get(0));
+        this.s = s;
+        Vector<DLCI> list = new Vector<>();
+        list.add(new DLCI(null));
+        s.lists.stream().map(l -> new DLCI(l)).forEach(i -> list.add(i));
+        dlCombo.setModel(new DefaultComboBoxModel<>(list));
+        dlCombo.getModel().setSelectedItem(list.get(0));
+        updateArea(list.get(0).dl);
     }
 
     private class DLIL implements ItemListener {
@@ -64,9 +73,16 @@ public class DLPanel extends JPanel {
 
     private void updateArea(DL dl) {
         StringBuilder sb = new StringBuilder();
-        for (int n = 0; n < dl.paras.size(); n++) {
-            Para p = dl.paras.get(n);
-            sb.append(String.format("%-3d: %s", n, p.toString())).append("\n");
+        if (dl != null) {
+            sb.append(dl).append("\n");
+            for (int n = 0; n < dl.paras.size(); n++) {
+                Para p = dl.paras.get(n);
+                sb.append(String.format("%-3d: %s", n, p.toString())).append("\n");
+            }
+        } else {
+            for (DL dl2 : s.lists) {
+                sb.append(dl2).append("\n");
+            }
         }
         area.setText(sb.toString());
         area.setCaretPosition(0);

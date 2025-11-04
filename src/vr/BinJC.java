@@ -8,7 +8,7 @@ import java.awt.image.WritableRaster;
 public class BinJC extends JComponent {
     public static class Opt {
         public enum Format {
-            SB(1), RGBA5551(2);
+            SB(1), RGBA5551(2), RGB565(2), EX(2);
             int nb;
 
             Format(int nb) {
@@ -102,22 +102,7 @@ public class BinJC extends JComponent {
                             } else {
                                 throw new RuntimeException();
                             }
-                            switch (opt.format) {
-                                case SB:
-                                    p[0] = p[1] = p[2] = w & 0xff;
-                                    break;
-                                case RGBA5551:
-                                    // rrrr rggg ggbb bbba
-                                    // 1111 1000 0000 0000
-                                    //      0111 1100 0000
-                                    //             11 1110
-                                    p[0] = (w & 0xf800) >>> 8;
-                                    p[1] = (w & 0x7c0) >>> 3;
-                                    p[2] = (w & 0x3e) << 2;
-                                    break;
-                                default:
-                                    throw new RuntimeException();
-                            }
+                            formatPixel(opt, p, w);
                         } else {
                             p[0] = 0;
                             p[1] = 0;
@@ -129,6 +114,39 @@ public class BinJC extends JComponent {
             }
         }
 
+    }
+
+    private static void formatPixel(Opt opt, int[] p, int w) {
+        switch (opt.format) {
+            case SB:
+                p[0] = p[1] = p[2] = w & 0xff;
+                break;
+            case EX:
+                p[0] = (w & 0x1f) << 3;
+                p[1] = ((w >>> 0x5) & 0x1f) << 3;
+                p[2] = ((w >>> 0xA) & 0x1f) << 3;
+                break;
+            case RGB565:
+                // rrrr rggg gggb bbbb
+                // 1111 1000 0000 0000
+                //      0111 1110 0000
+                //              1 1111
+                p[0] = (w & 0xf800) >>> 8;
+                p[1] = (w & 0x7e0) >>> 2;
+                p[2] = (w & 0x1f) << 3;
+                break;
+            case RGBA5551:
+                // rrrr rggg ggbb bbba
+                // 1111 1000 0000 0000
+                //      0111 1100 0000
+                //             11 1110
+                p[0] = (w & 0xf800) >>> 8;
+                p[1] = (w & 0x7c0) >>> 3;
+                p[2] = (w & 0x3e) << 2;
+                break;
+            default:
+                throw new RuntimeException();
+        }
     }
 
 }

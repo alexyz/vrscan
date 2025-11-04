@@ -6,6 +6,7 @@ import java.util.List;
 public class DL {
     public final List<Para> paras = new ArrayList<>();
     public final int position;
+    public PA pa;
     private Stats stats;
 
     public static class Stats {
@@ -41,7 +42,7 @@ public class DL {
 
     @Override
     public String toString() {
-        return String.format("DL[%x len=%d min=%s max=%s]",
-                position, paras.size(), min(), max());
+        return String.format("DL[%x len=%d min=%s max=%s pa=%x ta=%x]",
+                position, paras.size(), min(), max(), pa != null ? pa.polyAddr : 0, pa != null ? pa.texAddr : 0);
     }
 }

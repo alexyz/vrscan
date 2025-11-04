@@ -9,7 +9,23 @@ public class Polygons {
     public static int T3_BB = 0x1F4C78;
     public static int T_END = 0x2A6FD4;
 
-    public static List<DL> loadLists(int[] romWords) {
+    public static List<PA> loadPolyAddrs(int[] words) {
+        int s = 0xe0000 / 4, e = 0xec980 / 4;
+
+        List<PA> list = new ArrayList<>();
+        for (int n = s; n < e; n+=4) {
+            PA pa = new PA();
+            pa.polyAddr=words[n];
+            pa.texAddr=words[n+1];
+            pa.extra1=words[n+2];
+            pa.extra2=words[n+3];
+            list.add(pa);
+        }
+
+        return list;
+    }
+
+    public static List<DL> loadDisplayLists(int[] romWords) {
         List<DL> lists = new ArrayList<>();
         boolean newlist = true;
 
@@ -70,13 +86,14 @@ public class Polygons {
         f.z = Float.intBitsToFloat(w[o + 2]);
     }
 
+    //  void model1_state::push_object(uint32_t tex_adr, uint32_t poly_adr, uint32_t size)
     // 0180 1b02
     // n1 = 0
     // n2 = 0,1 - paint?
     // n3 = 0,8 - paint?
-    // n4 = 0
-    // n5 = 1
-    // n6 = register
+    // n4 = 0 - lightmode?
+    // n5 = 1 - tex adr, moire, backface cull?
+    // n6 = link
     // n7 = 0
     // n8 = 1,2 (Q, T)
     public static boolean isPrefix(int i) { // todo to Roms

@@ -5,7 +5,8 @@ import java.util.List;
 
 public class DL {
     public final List<Para> paras = new ArrayList<>();
-    public final int position;
+    public final int ordinal;
+    public final int offset;
     public PA pa;
     private Stats stats;
 
@@ -13,8 +14,9 @@ public class DL {
         public final F3 min = new F3().setMax(), max = new F3().setMin();
     }
 
-    public DL(int position) {
-        this.position = position;
+    public DL(int ordinal, int offset) {
+        this.ordinal = ordinal;
+        this.offset = offset;
     }
 
     private Stats stats() {
@@ -42,7 +44,7 @@ public class DL {
 
     @Override
     public String toString() {
-        return String.format("DL[%x len=%d min=%s max=%s pa=%x ta=%x]",
-                position, paras.size(), min(), max(), pa != null ? pa.polyAddr : 0, pa != null ? pa.texAddr : 0);
+        return String.format("DL[%x ord=%d len=%d min=%s max=%s pa=%x ta=%x]",
+                offset, ordinal, paras.size(), min(), max(), pa != null ? pa.polyAddr : 0, pa != null ? pa.texAddr : 0);
     }
 }

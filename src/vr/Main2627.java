@@ -18,8 +18,8 @@ public class Main2627 {
 
         //String[] romFiles = new String[]{"mpr-14890.26", "mpr-14891.27"};
         //byte[] roms = Roms.loadRom(romDir, romFiles);
-        byte[] roms = Roms.loadPolygons(romDir);
-        int[] romWords = Roms.swap32(roms);
+        Roms roms = new Roms(romDir);
+        int[] romWords = roms.loadSwap(Roms.RB.polygons);
 
         List<DL> lists = Polygons.loadDisplayLists(romWords);
 
@@ -27,12 +27,12 @@ public class Main2627 {
         System.out.println("paralists.size=" + lists.size());
 
 
-        Scene bf = new Scene(Polygons.T1_BF);
-        bf.lists.addAll(lists.stream().filter(l -> l.position >= Polygons.T1_BF && l.position < Polygons.T2_AP).toList());
-        Scene ap = new Scene(Polygons.T2_AP);
-        ap.lists.addAll(lists.stream().filter(l -> l.position >= Polygons.T2_AP && l.position < Polygons.T3_BB).toList());
-        Scene bb = new Scene(Polygons.T3_BB);
-        bb.lists.addAll(lists.stream().filter(l -> l.position >= Polygons.T3_BB && l.position < Polygons.T_END).toList());
+        Scene bf = new Scene(Polygons.T1_START);
+        bf.dls.addAll(lists.stream().filter(l -> l.offset >= Polygons.T1_START && l.offset < Polygons.T1_END).toList());
+        Scene ap = new Scene(Polygons.T2_START);
+        ap.dls.addAll(lists.stream().filter(l -> l.offset >= Polygons.T2_START && l.offset < Polygons.T2_END).toList());
+        Scene bb = new Scene(Polygons.T3_START);
+        bb.dls.addAll(lists.stream().filter(l -> l.offset >= Polygons.T3_START && l.offset < Polygons.T3_END).toList());
 
 
         for (Scene s : new Scene[]{bf, bb, ap}) {
@@ -85,7 +85,7 @@ public class Main2627 {
 
         g.setFont(ScanJF.MONO);
         g.setColor(Color.white);
-        g.drawString(String.format("%x,%d", s.position, s.lists.size()), 16, 16);
+        g.drawString(String.format("%x,%d", s.position, s.dls.size()), 16, 16);
 
         for (float x = -1; x <= 1; x += 0.5f) {
             for (float z = -1; z <= 1; z += 0.5f) {
@@ -98,7 +98,7 @@ public class Main2627 {
             }
         }
 
-        for (DL dl : s.lists) {
+        for (DL dl : s.dls) {
             boolean in;
             {
                 // 2d projection = x,y,z => x,-z
@@ -119,11 +119,11 @@ public class Main2627 {
                     g.drawRect(min.x, min.y, max.x - min.x, max.y - min.y);
                     g.setColor(Color.lightGray);
                     g.setFont(ScanJF.MONO);
-                    g.drawString(String.format("%x,%d", dl.position, dl.paras.size()), min.x, min.y + 12);
+                    g.drawString(String.format("%x,%d", dl.offset, dl.paras.size()), min.x, min.y + 12);
                 }
             }
 
-            if (in && (dlFilter.size() == 0 || dlFilter.contains(dl.position))) {
+            if (in && (dlFilter.size() == 0 || dlFilter.contains(dl.offset))) {
                 P2 r2p = null, r3p = null;
 
                 for (int n = 0; n < dl.paras.size(); n++) {
@@ -140,7 +140,7 @@ public class Main2627 {
                                 g.drawLine(s2p.x, s2p.y, r2p.x, r2p.y);
                                 g.drawLine(s3p.x, s3p.y, r3p.x, r3p.y);
                             } else {
-                                System.out.println(String.format("invalid Q %x:%d", dl.position, n));
+                                System.out.println(String.format("invalid Q %x:%d", dl.offset, n));
                             }
                         } else if ((p.word & 0xf) == 2) {
                             // draw T
@@ -149,7 +149,7 @@ public class Main2627 {
                                 g.drawLine(s2p.x, s2p.y, r2p.x, r2p.y);
                                 g.drawLine(s3p.x, s3p.y, r3p.x, r3p.y);
                             } else {
-                                System.out.println(String.format("invalid T %x:%d", dl.position, n));
+                                System.out.println(String.format("invalid T %x:%d", dl.offset, n));
                             }
                         } else {
                             throw new RuntimeException();
@@ -179,14 +179,25 @@ public class Main2627 {
                     }
 
                     // register update
-                    switch (p.word & 0xf00) {
-                        case 0x400:
-                        case 0x800:
-                        case 0xa00: r2p = s2p; r3p = s3p; break;
-                        case 0x900: r3p = s2p; break;
-                        case 0xb00: r2p = s3p; break;
-                        case 0x600: break; // no update?
-                        default: System.out.println(String.format("invalid update %x:%d", dl.position, n));
+//                    switch (p.word & 0xf00) {
+//                        case 0x400:
+//                        case 0x800:
+//                        case 0xa00: r2p = s2p; r3p = s3p; break;
+//                        case 0x900: r3p = s2p; break;
+//                        case 0xb00: r2p = s3p; break;
+//                        case 0x600: break; // no update?
+//                        default: System.out.println(String.format("invalid update %x:%d", dl.offset, n));
+//                    }
+
+                    int link = (p.word >> 8) & 3;
+                    switch (link) {
+                        case 0:
+                        case 2:
+                            r2p = s2p; r3p = s3p; break;
+                        case 1:
+                            r3p = s2p; break;
+                        case 3:
+                            r2p = s3p; break;
                     }
                 }
             }

@@ -4,11 +4,10 @@ import vr.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Vector;
 import java.util.prefs.Preferences;
 
 public class ScanJF extends JFrame {
@@ -22,7 +21,7 @@ public class ScanJF extends JFrame {
 
         @Override
         public String toString() {
-            return String.format("Scene %x (%d lists)", s.position, s.lists.size());
+            return s != null ? String.format("Scene %x (%d lists)", s.position, s.dls.size()) : "*";
         }
     }
 
@@ -37,15 +36,17 @@ public class ScanJF extends JFrame {
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setVisible(true);
 
-        SwingUtilities.invokeLater(() -> f.initScenes());
+        SwingUtilities.invokeLater(() -> f.initScenesAL());
     }
 
     private final SceneJP sceneJp = new SceneJP();
     private final JTabbedPane tabs = new JTabbedPane(JTabbedPane.TOP);
-    private final DLPanel listsJp = new DLPanel();
+    private final DLJP listsJp = new DLJP();
     private final JComboBox<SCI> sceneCombo = new JComboBox<>();
     private final JTextField dirField = new JTextField(32);
-    private final JButton loadButton = new JButton("Load");
+    private final JSpinner startSpin = new JSpinner();
+    private final JSpinner lenSpin = new JSpinner();
+    private World world;
 
     public ScanJF() {
         setPreferredSize(new Dimension(1280, 960));
@@ -54,79 +55,90 @@ public class ScanJF extends JFrame {
         // [romfile] [load] [proj] [trans] [scale]
         tabs.addTab("View", sceneJp);
         tabs.addTab("DL", listsJp);
-        sceneCombo.addItemListener(new SCIL());
+        sceneCombo.addItemListener(e -> sceneChangeIL());
         dirField.setText(PREFS.get("romDir", System.getProperty("user.dir")));
-        loadButton.addActionListener(e -> initScenes());
+        dirField.addActionListener(e -> initScenesAL());
+        startSpin.addChangeListener(l -> customScene());
+        lenSpin.addChangeListener(l -> customScene());
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
         top.add(new JLabel("Dir"));
         top.add(dirField);
-        top.add(loadButton);
         top.add(new JLabel("Scene"));
         top.add(sceneCombo);
+        top.add(new JLabel("DL"));
+        top.add(startSpin);
+        top.add(lenSpin);
         add(top, BorderLayout.NORTH);
         add(tabs, BorderLayout.CENTER);
     }
 
-    private void initScenes() {
-        File romDir = new File(dirField.getText());
-        if (romDir.isDirectory()) {
-            try {
-                byte[] polyBytes = Roms.loadPolygons(romDir);
-                int[] polyWords = Roms.swap32(polyBytes);
-                List<DL> dls = Polygons.loadDisplayLists(polyWords);
-                System.out.println("dls.size=" + dls.size());
+    private void initScenesAL() {
+        try {
+            File romDir = new File(dirField.getText());
+            System.out.println("init scenes " + romDir);
 
-                byte[] cpu1Bytes = Roms.loadMainCpu1(romDir);
-                int[] cpu1Words = Roms.swap32(cpu1Bytes);
-                List<PA> pas = Polygons.loadPolyAddrs(cpu1Words);
+            world = new World(new Roms(romDir));
+            world.init();
 
-                System.out.println("pas.size=" + pas.size());
-                for (int n = 0; n < Math.min(pas.size(), 32); n++) {
-                    System.out.println(String.format("pa[%d]=%s",n,pas.get(n)));
-                }
+            System.out.println("dls.size=" + world.totalDls.size());
 
-                for (DL dl : dls) {
-                    int exPa = (dl.position + 16) / 4;
-                    dl.pa = pas.stream().filter(pa -> pa.polyAddr == exPa).findFirst().orElse(null);
-                }
+            startSpin.setModel(new SpinnerNumberModel(0, 0, world.totalDls.size(), 1));
+            lenSpin.setModel(new SpinnerNumberModel(1, 1, world.totalDls.size(), 1));
 
-                Scene bf = new Scene(Polygons.T1_BF);
-                bf.lists.addAll(dls.stream().filter(l -> l.position >= Polygons.T1_BF && l.position < Polygons.T2_AP).toList());
-
-                Scene ap = new Scene(Polygons.T2_AP);
-                ap.lists.addAll(dls.stream().filter(l -> l.position >= Polygons.T2_AP && l.position < Polygons.T3_BB).toList());
-
-                Scene bb = new Scene(Polygons.T3_BB);
-                bb.lists.addAll(dls.stream().filter(l -> l.position >= Polygons.T3_BB && l.position < Polygons.T_END).toList());
-
-                List<Scene> scenes = Arrays.asList(bf, ap, bb);
-                sceneCombo.setModel(new DefaultComboBoxModel<SCI>(scenes.stream().map(s -> new SCI(s)).toArray(i -> new SCI[i])));
-                setScene(scenes.get(0));
-
-                PREFS.put("romDir", romDir.getAbsolutePath());
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), e.toString(), "init scenes", JOptionPane.ERROR_MESSAGE);
+            System.out.println("pas.size=" + world.pas.size());
+            for (int n = 0; n < Math.min(world.pas.size(), 16); n++) {
+                System.out.println(String.format("pa[%d]=%s", n, world.pas.get(n)));
             }
-        } else {
-            JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), "not a directory", "init scenes", JOptionPane.ERROR_MESSAGE);
+
+            Scene bf = world.bf();
+            Scene ap = world.ap();
+            Scene bb = world.bb();
+
+            Vector<SCI> sceneItems = new Vector<>();
+            Arrays.asList(bf, ap, bb).stream().forEach(s -> sceneItems.add(new SCI(s)));
+            sceneItems.add(new SCI(null));
+
+            sceneCombo.setModel(new DefaultComboBoxModel<SCI>(sceneItems));
+            sceneChangeIL();
+
+            PREFS.put("romDir", romDir.getAbsolutePath());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, e.toString());
         }
     }
 
+    private void customScene() {
+        int start = ((SpinnerNumberModel) startSpin.getModel()).getNumber().intValue();
+        int len = ((SpinnerNumberModel) lenSpin.getModel()).getNumber().intValue();
+        System.out.println("custom scene " + start + ", " + len);
+        List<DL> subdls = world.totalDls.subList(start, Math.min(world.totalDls.size(), start + len));
+        Scene custom = new Scene(subdls.get(0).offset);
+        custom.dls.addAll(subdls);
+        setScene(custom);
+    }
+
     private void setScene(Scene s) {
+        System.out.println("set scene " + s);
         sceneJp.setScene(s);
         listsJp.setScene(s);
         repaint();
     }
 
-    private class SCIL implements ItemListener {
-        @Override
-        public void itemStateChanged(ItemEvent e) {
-            if (e.getItem() instanceof SCI ci) {
-                setScene(ci.s);
+    private void sceneChangeIL() {
+        try {
+            SCI sci = (SCI) sceneCombo.getSelectedItem();
+            System.out.println("scene change " + sci.s);
+            if (sci.s != null) {
+                setScene(sci.s);
+            } else {
+                customScene();
             }
+        } catch (Exception e2) {
+            e2.printStackTrace();
+            JOptionPane.showMessageDialog(ScanJF.this, e2.toString());
         }
     }
 }

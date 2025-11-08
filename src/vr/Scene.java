@@ -10,7 +10,7 @@ public class Scene {
         public int minpos, maxpos;
     }
 
-    public final List<DL> lists = new ArrayList<>();
+    public final List<DL> dls = new ArrayList<>();
     public final int position;
     private Stats stats;
 
@@ -21,8 +21,8 @@ public class Scene {
     private Stats tStats() {
         if (stats == null) {
             Stats s = new Stats();
-            for (int n = 0; n < lists.size(); n++) {
-                DL p = lists.get(n);
+            for (int n = 0; n < dls.size(); n++) {
+                DL p = dls.get(n);
                 for (int d = 0; d < 3; d++) {
                     s.min.set(d, Math.min(s.min.get(d), p.min().get(d)));
                     s.max.set(d, Math.max(s.max.get(d), p.max().get(d)));
@@ -31,10 +31,10 @@ public class Scene {
             {
                 int min = Integer.MAX_VALUE;
                 int max = Integer.MIN_VALUE;
-                for (int n = 0; n < lists.size(); n++) {
-                    DL pl = lists.get(n);
-                    min = Math.min(min, pl.position);
-                    max = Math.max(max, pl.position);
+                for (int n = 0; n < dls.size(); n++) {
+                    DL pl = dls.get(n);
+                    min = Math.min(min, pl.offset);
+                    max = Math.max(max, pl.offset);
                 }
                 s.minpos = min;
                 s.maxpos = max;
@@ -92,12 +92,12 @@ public class Scene {
     }
 
     public int countP() {
-        return lists.stream().mapToInt(l -> l.paras.size()).sum();
+        return dls.stream().mapToInt(l -> l.paras.size()).sum();
     }
 
     @Override
     public String toString() {
-        return String.format("Scene[p=%x pls=%d paras=%d dim=%s]", position, lists.size(), countP(), dim());
+        return String.format("Scene[p=%x dls=%d paras=%d dim=%s]", position, dls.size(), countP(), dim());
     }
 
 }

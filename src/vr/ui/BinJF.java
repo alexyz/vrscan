@@ -1,16 +1,21 @@
-package vr;
+package vr.ui;
+
+import vr.Roms;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.prefs.Preferences;
 
 // todo a vertical size and a pager and much bigger offset and view to model and swap ...
 // and rowwise/coloum wise, and read 1/2/3/4 bytes at a time (le or be) or at 5-6-5 colour
 // reuse image if res hasn't changed
 public class BinJF extends JFrame {
 
+    private static Preferences PREFS = Preferences.userNodeForPackage(ScanJF.class);
+
     public static void main(String[] args) throws Exception {
-        File romDir = new File(args[0]);
+        //File romDir = new File(args[0]);
         //byte[] data = Roms.intsToBytesBe(Roms.swap32(Roms.loadPolygons(romDir)));
 
         // looks like faint images.
@@ -24,7 +29,7 @@ public class BinJF extends JFrame {
         // 917,504 s 16 has a clear look up table
         // E0000 (917504-969088) possible start of DL+TA
         // F2A90 (993936-end) possible start of colours (also tiles)
-        byte[] data = Roms.loadMainCpu1(romDir);
+        //byte[] data = Roms.loadMainCpu1(romDir);
 
         // lots of small structure arrays
         // 18 has array
@@ -46,17 +51,22 @@ public class BinJF extends JFrame {
         //byte[] data = Roms.intsToBytesBe(Roms.swap32(Roms.loadTgpData(romDir)));
 
         BinJF f = new BinJF();
-        f.setData(data);
+        //f.setData(data);
         f.pack();
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setVisible(true);
+
+        SwingUtilities.invokeLater(() -> f.loadRoms());
     }
 
+    private final JTextField dirField = new JTextField(20);
+    private final JComboBox<Roms.RB> romBox = new JComboBox<>(Roms.RB.values());
     private final JSpinner sizeSpin = new JSpinner(new SpinnerNumberModel(32, 1, 1024000, 1));
     private final JSpinner offsetSpin = new JSpinner(new SpinnerNumberModel(0, -16777216, 16777216, 65536));
     private final JComboBox<BinJC.Opt.Format> formatBox = new JComboBox<>(BinJC.Opt.Format.values());
     private final JCheckBox swapBox = new JCheckBox("Swap", true);
     private final BinJC binJc = new BinJC();
+    private Roms roms;
 
     public BinJF() {
         setPreferredSize(new Dimension(1280, 960));
@@ -66,8 +76,13 @@ public class BinJF extends JFrame {
         offsetSpin.addChangeListener(e -> updateView());
         formatBox.addItemListener(e -> updateView());
         swapBox.addChangeListener(e -> updateView());
+        dirField.setText(PREFS.get("romDir", System.getProperty("user.dir")));
+        dirField.addActionListener(e -> loadRoms());
+        romBox.addItemListener(e -> setData());
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
+        top.add(new JLabel("Rom"));
+        top.add(romBox);
         top.add(new JLabel("Size"));
         top.add(sizeSpin);
         top.add(new JLabel("Offset"));
@@ -79,10 +94,25 @@ public class BinJF extends JFrame {
         add(binJc, BorderLayout.CENTER);
     }
 
-    private void setData(byte[] data) {
-        binJc.setData(data);
-        updateView();
-        repaint();
+    private void loadRoms() {
+        try {
+            roms = new Roms(new File(dirField.getText()));
+            setData();
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, e.toString());
+        }
+    }
+
+    private void setData() {
+        try {
+            binJc.setData(roms.load((Roms.RB) romBox.getSelectedItem()));
+            updateView();
+            repaint();
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, e.toString());
+        }
     }
 
     private void updateView() {

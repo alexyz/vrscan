@@ -1,4 +1,4 @@
-package vr;
+package vr.ui;
 
 import javax.swing.*;
 import java.awt.*;

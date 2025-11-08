@@ -10,7 +10,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Vector;
 
-public class DLPanel extends JPanel {
+public class DLJP extends JPanel {
 
     private static class DLCI {
         public final DL dl;
@@ -22,7 +22,7 @@ public class DLPanel extends JPanel {
         @Override
         public String toString() {
             if (dl != null) {
-                return String.format("DL %x (%d polys)", dl.position, dl.paras.size());
+                return String.format("DL %x (%d polys)", dl.offset, dl.paras.size());
             } else {
                 return "*";
             }
@@ -33,7 +33,7 @@ public class DLPanel extends JPanel {
     private final JTextArea area = new JTextArea();
     private Scene s;
 
-    public DLPanel() {
+    public DLJP() {
         super(new BorderLayout());
         dlCombo.addItemListener(new DLIL());
         area.setEditable(false);
@@ -53,7 +53,7 @@ public class DLPanel extends JPanel {
         this.s = s;
         Vector<DLCI> list = new Vector<>();
         list.add(new DLCI(null));
-        s.lists.stream().map(l -> new DLCI(l)).forEach(i -> list.add(i));
+        s.dls.stream().map(l -> new DLCI(l)).forEach(i -> list.add(i));
         dlCombo.setModel(new DefaultComboBoxModel<>(list));
         dlCombo.getModel().setSelectedItem(list.get(0));
         updateArea(list.get(0).dl);
@@ -80,7 +80,7 @@ public class DLPanel extends JPanel {
                 sb.append(String.format("%-3d: %s", n, p.toString())).append("\n");
             }
         } else {
-            for (DL dl2 : s.lists) {
+            for (DL dl2 : s.dls) {
                 sb.append(dl2).append("\n");
             }
         }

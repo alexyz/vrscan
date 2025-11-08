@@ -7,8 +7,8 @@ the roms themselves are not part of this project, and this project is not associ
 entry points:
  
 * vr.ui.ScanJF - Swing UI to display polygon rom data in 3d
+* vr.ui.BinJF - Swing UI to display any rom contents as a 2d image
 * vr.Main2627 - command line program to render 3d images to a png file
-* vr.BinJF - Swing UI to display any rom contents as a 2d image
 
 todo: everything
 

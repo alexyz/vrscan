@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Polygons {
-    public static int T1_BF = 0;
-    public static int T2_AP = 0xF8D10; // was 0xf9fc0
-    public static int T3_BB = 0x1F4C78;
-    public static int T_END = 0x2A6FD4;
+    public static int T1_START = 0, T1_END = 0xf9fb8;
+    public static int T2_START = 0xfb36c, T2_END = 0x1f5570;
+    public static int T3_START = 0x1f6924, T3_END = 0x2A6FD4;
 
     public static List<PA> loadPolyAddrs(int[] words) {
         int s = 0xe0000 / 4, e = 0xec980 / 4;
@@ -28,9 +27,10 @@ public class Polygons {
     public static List<DL> loadDisplayLists(int[] romWords) {
         List<DL> lists = new ArrayList<>();
         boolean newlist = true;
+        int ord = 0;
 
         for (int wp = 0; wp < romWords.length; ) {
-            if (romWords[wp] == 0) {
+            if (romWords[wp] == 0 || romWords[wp] == 0xffffffff) {
                 newlist = true;
                 wp++;
 
@@ -42,8 +42,9 @@ public class Polygons {
 
                 } else {
                     if (newlist) {
-                        lists.add(new DL(wp * 4));
+                        lists.add(new DL(ord,wp * 4));
                         newlist = false;
+                        ord++;
                     }
                     lists.get(lists.size() - 1).paras.add(p);
                     //System.out.println(String.format("p %6x %s", wp * 4, readParaStr(outw, wp)));

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DL {
-    public final List<Para> paras = new ArrayList<>();
+    public final List<Para> polys = new ArrayList<>();
     public final int ordinal;
     public final int offset;
     public PA pa;
@@ -22,8 +22,8 @@ public class DL {
     private Stats stats() {
         if (stats == null) {
             Stats s = new Stats();
-            for (int n = 0; n < paras.size(); n++) {
-                Para p = paras.get(n);
+            for (int n = 0; n < polys.size(); n++) {
+                Para p = polys.get(n);
                 for (int d = 0; d < 3; d++) {
                     s.min.set(d, Math.min(Math.min(s.min.get(d), p.s2.get(d)), p.s3.get(d)));
                     s.max.set(d, Math.max(Math.max(s.max.get(d), p.s2.get(d)), p.s3.get(d)));
@@ -45,6 +45,6 @@ public class DL {
     @Override
     public String toString() {
         return String.format("DL[%x ord=%d len=%d min=%s max=%s pa=%x ta=%x]",
-                offset, ordinal, paras.size(), min(), max(), pa != null ? pa.polyAddr : 0, pa != null ? pa.texAddr : 0);
+                offset, ordinal, polys.size(), min(), max(), pa != null ? pa.polyAddr : 0, pa != null ? pa.texAddr : 0);
     }
 }

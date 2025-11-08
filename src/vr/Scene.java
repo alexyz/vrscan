@@ -92,7 +92,7 @@ public class Scene {
     }
 
     public int countP() {
-        return dls.stream().mapToInt(l -> l.paras.size()).sum();
+        return dls.stream().mapToInt(l -> l.polys.size()).sum();
     }
 
     @Override

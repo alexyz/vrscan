@@ -119,15 +119,15 @@ public class Main2627 {
                     g.drawRect(min.x, min.y, max.x - min.x, max.y - min.y);
                     g.setColor(Color.lightGray);
                     g.setFont(ScanJF.MONO);
-                    g.drawString(String.format("%x,%d", dl.offset, dl.paras.size()), min.x, min.y + 12);
+                    g.drawString(String.format("%x,%d", dl.offset, dl.polys.size()), min.x, min.y + 12);
                 }
             }
 
             if (in && (dlFilter.size() == 0 || dlFilter.contains(dl.offset))) {
                 P2 r2p = null, r3p = null;
 
-                for (int n = 0; n < dl.paras.size(); n++) {
-                    Para p = dl.paras.get(n);
+                for (int n = 0; n < dl.polys.size(); n++) {
+                    Para p = dl.polys.get(n);
                     P2 s2p = total2.mul(p.s2.toM()).toP2();
                     P2 s3p = total2.mul(p.s3.toM()).toP2();
 

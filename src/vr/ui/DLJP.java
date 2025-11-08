@@ -22,7 +22,7 @@ public class DLJP extends JPanel {
         @Override
         public String toString() {
             if (dl != null) {
-                return String.format("DL %x (%d polys)", dl.offset, dl.paras.size());
+                return String.format("DL %x (%d polys)", dl.offset, dl.polys.size());
             } else {
                 return "*";
             }
@@ -75,8 +75,8 @@ public class DLJP extends JPanel {
         StringBuilder sb = new StringBuilder();
         if (dl != null) {
             sb.append(dl).append("\n");
-            for (int n = 0; n < dl.paras.size(); n++) {
-                Para p = dl.paras.get(n);
+            for (int n = 0; n < dl.polys.size(); n++) {
+                Para p = dl.polys.get(n);
                 sb.append(String.format("%-3d: %s", n, p.toString())).append("\n");
             }
         } else {

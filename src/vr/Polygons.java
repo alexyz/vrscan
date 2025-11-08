@@ -46,7 +46,7 @@ public class Polygons {
                         newlist = false;
                         ord++;
                     }
-                    lists.get(lists.size() - 1).paras.add(p);
+                    lists.get(lists.size() - 1).polys.add(p);
                     //System.out.println(String.format("p %6x %s", wp * 4, readParaStr(outw, wp)));
                 }
                 wp += 10;

@@ -42,9 +42,13 @@ public class DL {
         return stats().max;
     }
 
+    public int end() {
+        return offset + (polys.size() * 20);
+    }
+
     @Override
     public String toString() {
-        return String.format("DL[%x ord=%d len=%d min=%s max=%s pa=%x ta=%x]",
-                offset, ordinal, polys.size(), min(), max(), pa != null ? pa.polyAddr : 0, pa != null ? pa.texAddr : 0);
+        return String.format("DL[%x ord=%d end=%x len=%d min=%s max=%s pa=%x ta=%x]",
+                offset, ordinal, end(), polys.size(), min(), max(), pa != null ? pa.polyAddr : 0, pa != null ? pa.texAddr : 0);
     }
 }

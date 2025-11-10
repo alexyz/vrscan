@@ -38,4 +38,10 @@ public class World {
         bb.dls.addAll(totalDls.stream().filter(l -> l.offset >= Polygons.T3_START && l.offset < Polygons.T3_END).toList());
         return bb;
     }
+
+    public Scene p() {
+        Scene bb = new Scene(Polygons.P_START);
+        bb.dls.addAll(totalDls.stream().filter(l -> l.offset >= Polygons.P_START && l.offset < Polygons.P_END).toList());
+        return bb;
+    }
 }

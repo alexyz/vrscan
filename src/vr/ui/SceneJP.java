@@ -4,7 +4,6 @@ import vr.Scene;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ItemEvent;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -14,6 +13,9 @@ public class SceneJP extends JPanel {
     private final JCheckBox numBox = new JCheckBox("Number");
     private final JTextField numField = new JTextField();
     private final JTextField dlField = new JTextField();
+    private final JSpinner xSpin = new JSpinner(new SpinnerNumberModel(0,-360,360,1));
+    private final JSpinner ySpin = new JSpinner(new SpinnerNumberModel(0,-360,360,1));
+    private final JSpinner zSpin = new JSpinner(new SpinnerNumberModel(0,-360,360,1));
 
     public SceneJP() {
         super(new BorderLayout());
@@ -25,6 +27,9 @@ public class SceneJP extends JPanel {
         dlField.setFont(ScanJF.MONO);
         dlField.setColumns(24);
         dlField.addActionListener(e -> dlFieldActionEvent());
+        xSpin.addChangeListener(e -> spinChangeListener());
+        ySpin.addChangeListener(e -> spinChangeListener());
+        zSpin.addChangeListener(e -> spinChangeListener());
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
         top.add(numBox);
@@ -32,9 +37,21 @@ public class SceneJP extends JPanel {
         top.add(dlField);
         top.add(new JLabel("NF"));
         top.add(numField);
+        top.add(new JLabel("R"));
+        top.add(xSpin);
+        top.add(ySpin);
+        top.add(zSpin);
 
         add(top, BorderLayout.NORTH);
         add(sceneJc, BorderLayout.CENTER);
+    }
+
+    private void spinChangeListener() {
+        sceneJc.setRot(getRadians(xSpin), getRadians(ySpin), getRadians(zSpin));
+    }
+
+    private static double getRadians(JSpinner spin) {
+        return Math.toRadians(((SpinnerNumberModel) spin.getModel()).getNumber().doubleValue());
     }
 
     private void dlFieldActionEvent() {

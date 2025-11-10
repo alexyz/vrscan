@@ -21,7 +21,7 @@ public class ScanJF extends JFrame {
 
         @Override
         public String toString() {
-            return s != null ? String.format("Scene %x (%d lists)", s.position, s.dls.size()) : "*";
+            return s != null ? String.format("Scene %x (%d lists)", s.position, s.dls.size()) : "Custom Scene";
         }
     }
 
@@ -68,6 +68,7 @@ public class ScanJF extends JFrame {
         top.add(sceneCombo);
         top.add(new JLabel("DL"));
         top.add(startSpin);
+        top.add(new JLabel("Len"));
         top.add(lenSpin);
         add(top, BorderLayout.NORTH);
         add(tabs, BorderLayout.CENTER);
@@ -91,12 +92,8 @@ public class ScanJF extends JFrame {
                 System.out.println(String.format("pa[%d]=%s", n, world.pas.get(n)));
             }
 
-            Scene bf = world.bf();
-            Scene ap = world.ap();
-            Scene bb = world.bb();
-
             Vector<SCI> sceneItems = new Vector<>();
-            Arrays.asList(bf, ap, bb).stream().forEach(s -> sceneItems.add(new SCI(s)));
+            Arrays.asList(world.bf(), world.ap(), world.bb(), world.p()).stream().forEach(s -> sceneItems.add(new SCI(s)));
             sceneItems.add(new SCI(null));
 
             sceneCombo.setModel(new DefaultComboBoxModel<SCI>(sceneItems));
@@ -111,13 +108,21 @@ public class ScanJF extends JFrame {
     }
 
     private void customScene() {
-        int start = ((SpinnerNumberModel) startSpin.getModel()).getNumber().intValue();
-        int len = ((SpinnerNumberModel) lenSpin.getModel()).getNumber().intValue();
+        int start = getStartModel().getNumber().intValue();
+        int len = getLenModel().getNumber().intValue();
         System.out.println("custom scene " + start + ", " + len);
         List<DL> subdls = world.totalDls.subList(start, Math.min(world.totalDls.size(), start + len));
         Scene custom = new Scene(subdls.get(0).offset);
         custom.dls.addAll(subdls);
         setScene(custom);
+    }
+
+    private SpinnerNumberModel getLenModel() {
+        return (SpinnerNumberModel) lenSpin.getModel();
+    }
+
+    private SpinnerNumberModel getStartModel() {
+        return (SpinnerNumberModel) startSpin.getModel();
     }
 
     private void setScene(Scene s) {
@@ -133,8 +138,14 @@ public class ScanJF extends JFrame {
             System.out.println("scene change " + sci.s);
             if (sci.s != null) {
                 setScene(sci.s);
+                startSpin.setEnabled(false);
+                lenSpin.setEnabled(false);
+                getStartModel().setValue(sci.s.dls.get(0).ordinal);
+                getLenModel().setValue(sci.s.dls.size());
             } else {
                 customScene();
+                startSpin.setEnabled(true);
+                lenSpin.setEnabled(true);
             }
         } catch (Exception e2) {
             e2.printStackTrace();

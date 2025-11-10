@@ -40,7 +40,7 @@ public class Main2627 {
                 BufferedImage im = new BufferedImage(1024, 1024, BufferedImage.TYPE_3BYTE_BGR);
                 Graphics2D g = (Graphics2D) im.getGraphics();
                 g.setClip(0, 0, im.getWidth(), im.getHeight());
-                drawImage2(s, g, new P2(), 1, false, Collections.emptySet(), Collections.emptySet());
+                drawImage2(s, g, new P2(), 1, 0, 0,0,false, Collections.emptySet(), Collections.emptySet());
                 String file = String.format("scenes\\m2scene%x.png", s.minPos());
                 System.out.println("writing " + file);
                 ImageIO.write(im, "png", new File(outDir, file));
@@ -51,7 +51,11 @@ public class Main2627 {
     }
 
     // draw independent of scene size
-    public static void drawImage2(Scene s, Graphics2D g, P2 t, double sf, boolean num, Set<Integer> numFilter, Set<Integer> dlFilter) {
+    public static void drawImage2(Scene s, Graphics2D g,
+                                  P2 t,
+                                  double sf,
+                                  double xr, double yr, double zr,
+                                  boolean num, Set<Integer> numFilter, Set<Integer> dlFilter) {
         Rectangle win = g.getClipBounds();
         int w = win.width;
         int h = win.height;
@@ -61,8 +65,11 @@ public class Main2627 {
         M norm2 = s.normalisationMatrix2();
         //System.out.println("norm2=" + norm2);
 
-        // ortho projection of xz
-        M proj2 = new M(4, 4).setRows(new double[][]{{1, 0, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 0}, {0, 0, 0, 1}});
+        // rotation matrix
+        M rot = M.rx(xr).mul(M.ry(yr)).mul(M.rz(zr));
+
+        // ortho projection of x,-z
+        M proj2 = new M(4, 4).set(0,0,1).set(1,2,-1).set(3,3, 1);
 
         // scale to window size preserving aspect
         double sf2 = (sf * Math.min(w, h)) / 2.0;
@@ -71,7 +78,8 @@ public class Main2627 {
         // translate to 0,0
         M wintr2 = M.trans4((w / 2.0) + t.x, (h / 2.0) + t.y, 0);
 
-        M total2 = wintr2.mul(winsc2.mul(proj2.mul(norm2))).setRo();
+        M total2 = wintr2.mul(winsc2.mul(proj2.mul(norm2.mul(rot)))).setRo();
+        //M total2 = wintr2.mul(winsc2.mul(proj2.mul(norm2))).setRo();
         //System.out.println("total2=" + total2);
 
         // to get the width and height, we need the difference between the 2d projections of the extreme points
@@ -83,9 +91,6 @@ public class Main2627 {
         Color lightBlue = new Color(128,128,255);
         Color lightGreen = new Color(128,255,128);
 
-        g.setFont(ScanJF.MONO);
-        g.setColor(Color.white);
-        g.drawString(String.format("%x,%d", s.position, s.dls.size()), 16, 16);
 
         for (float x = -1; x <= 1; x += 0.5f) {
             for (float z = -1; z <= 1; z += 0.5f) {
@@ -178,17 +183,6 @@ public class Main2627 {
                         }
                     }
 
-                    // register update
-//                    switch (p.word & 0xf00) {
-//                        case 0x400:
-//                        case 0x800:
-//                        case 0xa00: r2p = s2p; r3p = s3p; break;
-//                        case 0x900: r3p = s2p; break;
-//                        case 0xb00: r2p = s3p; break;
-//                        case 0x600: break; // no update?
-//                        default: System.out.println(String.format("invalid update %x:%d", dl.offset, n));
-//                    }
-
                     int link = (p.word >> 8) & 3;
                     switch (link) {
                         case 0:
@@ -202,7 +196,11 @@ public class Main2627 {
                 }
             }
         }
-        //return im;
+
+        g.setFont(ScanJF.MONO);
+        g.setColor(Color.white);
+        g.drawString(String.format("%s", s), 16, 16);
+        g.drawString(String.format("t=%s sf=%s r=%s,%s,%s num=%s nf=%s dlf=%s", t, sf, xr, yr,zr, num, numFilter, dlFilter), 16, 32);
     }
 
 

@@ -14,6 +14,33 @@ public class M {
         return new M(4,1).set(0, 0, x).set(1, 0, y).set(2, 0, z).set(3, 0, 1);
     }
 
+    public static M rx(double t) {
+        double ct = Math.cos(t), st = Math.sin(t);
+        return new M(4, 4)
+                .set(0, 0, 1)
+                .set(1, 1, ct).set(1, 2, -st)
+                .set(2, 1, st).set(2, 2, ct)
+                .set(3, 3, 1);
+    }
+
+    public static M ry(double t) {
+        double ct = Math.cos(t), st = Math.sin(t);
+        return new M(4, 4)
+                .set(0, 0, ct).set(0, 2, st)
+                .set(1, 1, 1)
+                .set(2, 0, -st).set(2, 2, ct)
+                .set(3, 3, 1);
+    }
+
+    public static M rz(double t) {
+        double ct = Math.cos(t), st = Math.sin(t);
+        return new M(4, 4)
+                .set(0, 0, ct).set(0, 1, -st)
+                .set(1, 0, st).set(1, 1, ct)
+                .set(2, 2, 1)
+                .set(3, 3, 1);
+    }
+
     private final double[] v;
     public final int nr, nc;
     private boolean ro;
@@ -84,22 +111,44 @@ public class M {
         }
     }
 
-    public M setRows(double[][] v) {
-        if (v.length == nr) {
-            for (int r = 0; r < v.length; r++) {
-                if (v[r].length == nc) {
-                    for (int c = 0; c < v[r].length; c++) {
-                        set(r, c, v[r][c]);
-                    }
-                } else {
-                    throw new RuntimeException();
-                }
+    public M setRow(int r, double... cv) {
+        if (r >= 0 && r < nr && cv.length == nc) {
+            for (int c = 0; c < cv.length; c++) {
+                set(r, c, cv[c]);
             }
             return this;
         } else {
             throw new RuntimeException();
         }
     }
+
+    public M setCol(int c, double... rv) {
+        if (c >= 0 && c < nc && rv.length == nr) {
+            for (int r = 0; r < rv.length; r++) {
+                set(r, c, v[r]);
+            }
+            return this;
+        } else {
+            throw new RuntimeException();
+        }
+    }
+
+//    public M setRows(double[][] v) {
+//        if (v.length == nr) {
+//            for (int r = 0; r < v.length; r++) {
+//                if (v[r].length == nc) {
+//                    for (int c = 0; c < v[r].length; c++) {
+//                        set(r, c, v[r][c]);
+//                    }
+//                } else {
+//                    throw new RuntimeException();
+//                }
+//            }
+//            return this;
+//        } else {
+//            throw new RuntimeException();
+//        }
+//    }
 
     public M mul(M rm) {
         return mul(rm, new M(nr, rm.nc));

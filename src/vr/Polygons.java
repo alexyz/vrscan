@@ -7,6 +7,7 @@ public class Polygons {
     public static int T1_START = 0, T1_END = 0xf9fb8;
     public static int T2_START = 0xfb36c, T2_END = 0x1f5570;
     public static int T3_START = 0x1f6924, T3_END = 0x2A6FD4;
+    public static int P_START = 0x480000, P_END = 0x487788;
 
     public static List<PA> loadPolyAddrs(int[] words) {
         int s = 0xe0000 / 4, e = 0xec980 / 4;

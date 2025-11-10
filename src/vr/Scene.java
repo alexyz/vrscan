@@ -44,17 +44,12 @@ public class Scene {
         return stats;
     }
 
-    /** adjust f to be zero based within the scene  */
-//    public F3 normalise(F3 f) {
-//        // min=-200 max=-100 p=-125
-//        // then (p-min) = -125 - -200 = 75
-//        // or (max-p) = -100 - -125 = 25
-//        // f.z - min().z
-//        return new F3().set(f.x - min().x, f.y - min().y, f.z - min().z);
-//    }
-
+    /** normalise to unit cube */
     public M normalisationMatrix2() {
-        return M.trans4(-1, -1, -1).mul(M.scale4(2, 2, 2)).mul(unitSquare2()).mul(zeroBase2()).setRo();
+        return M.trans4(-1, -1, -1)
+                .mul(M.scale4(2, 2, 2))
+                .mul(unitSquare2())
+                .mul(zeroBase2()).setRo();
     }
 
     /** scale so point is within [0,1]^3 preserving aspect */

@@ -21,6 +21,7 @@ public class SceneJC extends JComponent {
     private boolean num;
     private final Set<Integer> numFilter = new TreeSet<>();
     private final Set<Integer> dlFilter = new TreeSet<>();
+    private double xr, yr, zr;
 
     public SceneJC() {
         SceneMA ma = new SceneMA();
@@ -41,10 +42,10 @@ public class SceneJC extends JComponent {
         g.setColor(Color.black);
         g.fillRect(0, 0, w, h);
         g.setColor(Color.white);
-        g.drawString("c=" + r + " w=" + w + " h=" + h, 12, 24);
-        g.drawString("tx=" + tx + " temptx=" + temptx + " zf=" + zoom, 12, 48);
+        g.drawString("c=" + r + " w=" + w + " h=" + h, 12, 48);
+        g.drawString("tx=" + tx + " temptx=" + temptx + " zf=" + zoom, 12, 60);
         if (scene != null) {
-            Main2627.drawImage2(scene, (Graphics2D) g, tx.add(temptx), zoom, num, numFilter, dlFilter);
+            Main2627.drawImage2(scene, (Graphics2D) g, tx.add(temptx), zoom, xr, yr, zr, num, numFilter, dlFilter);
         }
     }
 
@@ -62,6 +63,13 @@ public class SceneJC extends JComponent {
     public void setDlFilter(Set<Integer> set) {
         dlFilter.clear();
         dlFilter.addAll(set);
+        repaint();
+    }
+
+    public void setRot(double xr, double yr, double zr) {
+        this.xr = xr;
+        this.yr = yr;
+        this.zr = zr;
         repaint();
     }
 

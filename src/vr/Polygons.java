@@ -1,31 +1,69 @@
 package vr;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Polygons {
-    public static int T1_START = 0, T1_END = 0xf9fb8;
-    public static int T2_START = 0xfb36c, T2_END = 0x1f5570;
-    public static int T3_START = 0x1f6924, T3_END = 0x2A6FD4;
-    public static int P_START = 0x480000, P_END = 0x487788;
+    public List<DL> displayLists;
+    public List<PA> polyAddrs;
+    public short[] textures, palette;
 
-    public static List<PA> loadPolyAddrs(int[] words) {
+    public Polygons load(Roms roms) throws IOException {
+        // load PA
+        this.polyAddrs = loadPolyAddrs(roms.loadWords(Roms.RB.mainCpu1));
+        // load TGP
+        this.textures = loadTextures(roms);
+        // load palette
+        this.palette = loadPalette(roms);
+        // load display lists...
+        this.displayLists = loadDisplayLists(roms.loadWords(Roms.RB.polygons));
+
+        // copy pa into dl
+        for (DL dl : displayLists) {
+            int exPa = (dl.offset + 16) / 4;
+            dl.pa = polyAddrs.stream().filter(pa -> pa.polyAddr == exPa).findFirst().orElse(null);
+        }
+
+        return this;
+    }
+
+    private short[] loadPalette(Roms roms) throws IOException {
+        short[] data = roms.loadHalfWords(Roms.RB.mainCpu1);
+        int p = 0xEC980 / 2;
+        short[] a = new short[0x400];
+        for (int n = 0; n < a.length; n++) {
+            a[n] = data[p + n];
+        }
+        return a;
+    }
+
+    private short[] loadTextures(Roms roms) throws IOException {
+        short[] data = roms.loadHalfWords(Roms.RB.mainCpu1);
+        short[] a = new short[0x60000];
+        for (int n = 0; n < a.length; n++) {
+            a[n] = data[n];
+        }
+        return a;
+    }
+
+    private List<PA> loadPolyAddrs(int[] words) {
         int s = 0xe0000 / 4, e = 0xec980 / 4;
 
         List<PA> list = new ArrayList<>();
-        for (int n = s; n < e; n+=4) {
+        for (int n = s; n < e; n += 4) {
             PA pa = new PA();
-            pa.polyAddr=words[n];
-            pa.texAddr=words[n+1];
-            pa.extra1=words[n+2];
-            pa.extra2=words[n+3];
+            pa.polyAddr = words[n];
+            pa.texAddr = words[n + 1];
+            pa.extra1 = words[n + 2];
+            pa.extra2 = words[n + 3];
             list.add(pa);
         }
 
         return list;
     }
 
-    public static List<DL> loadDisplayLists(int[] romWords) {
+    private List<DL> loadDisplayLists(int[] romWords) {
         List<DL> lists = new ArrayList<>();
         boolean newlist = true;
         int ord = 0;
@@ -43,7 +81,7 @@ public class Polygons {
 
                 } else {
                     if (newlist) {
-                        lists.add(new DL(ord,wp * 4));
+                        lists.add(new DL(ord, wp * 4));
                         newlist = false;
                         ord++;
                     }
@@ -115,5 +153,10 @@ public class Polygons {
         return false;
     }
 
-    private Polygons() { }
+    @Override
+    public String toString() {
+        return String.format("%s[dls=%d pas=%d tex=%d pal=%d]",
+                getClass().getSimpleName(), displayLists.size(), polyAddrs.size(), textures.length, palette.length);
+    }
+
 }

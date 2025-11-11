@@ -34,15 +34,16 @@ public class Roms {
         writeBytes(new File(outDir, "maincpu1.bin"), roms.load(RB.mainCpu1));
         writeBytes(new File(outDir, "maincpu2.bin"), roms.load(RB.mainCpu2));
         writeBytes(new File(outDir, "maincpu3.bin"), roms.load(RB.mainCpu3));
-        writeIntsBe(new File(outDir, "polygons.swap.bin"), roms.loadSwap((RB.polygons)));
+        writeIntsBe(new File(outDir, "polygons.swap.bin"), roms.loadWords((RB.polygons)));
         writeBytes(new File(outDir, "tgpdata.bin"), roms.load(RB.tgpData));
-        writeIntsBe(new File(outDir, "tgpdata.swap.bin"), roms.loadSwap(RB.tgpData));
+        writeIntsBe(new File(outDir, "tgpdata.swap.bin"), roms.loadWords(RB.tgpData));
 
     }
 
     private final File romDir;
     private Map<RB, byte[]> bytes = new TreeMap<>();
     private Map<RB, int[]> words = new TreeMap<>();
+    private Map<RB, short[]> halfWords = new TreeMap<>();
 
     public Roms(File romDir) {
         if (!romDir.isDirectory()) {
@@ -127,7 +128,7 @@ public class Roms {
         return b;
     }
 
-    public int[] loadSwap(RB bank) throws IOException {
+    public int[] loadWords(RB bank) throws IOException {
         int[] w = words.get(bank);
         if (w == null) {
             words.put(bank, w = swap32(load(bank)));
@@ -135,18 +136,33 @@ public class Roms {
         return w;
     }
 
+    public short[] loadHalfWords(RB bank) throws IOException {
+        short[] hw = halfWords.get(bank);
+        if (hw == null) {
+            halfWords.put(bank, hw = swap16(load(bank)));
+        }
+        return hw;
+    }
+
+    private static short[] swap16(byte[] roms) throws IOException {
+        short[] outw = new short[roms.length / 2];
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(roms)) {
+            int p = 0;
+            byte[] a = new byte[2];
+            while (bis.read(a) > 0) {
+                outw[p++] = (short) ((a[1] & 0xff) << 8 | (a[0] & 0xff));
+            }
+        }
+        return outw;
+    }
+
     private static int[] swap32(byte[] roms) throws IOException {
-        int[] outw;
-        outw = new int[roms.length / 4];
-        byte[] a = new byte[4], b = new byte[4];
+        int[] outw = new int[roms.length / 4];
+        byte[] a = new byte[4];
         try (ByteArrayInputStream bis = new ByteArrayInputStream(roms)) {
             int p = 0;
             while (bis.read(a) > 0) {
-                b[0] = a[3];
-                b[1] = a[2];
-                b[2] = a[1];
-                b[3] = a[0];
-                outw[p++] = ((b[0] & 0xff) << 24) | ((b[1] & 0xff) << 16) | ((b[2] & 0xff) << 8) | (b[3] & 0xff);
+                outw[p++] = ((a[3] & 0xff) << 24) | ((a[2] & 0xff) << 16) | ((a[1] & 0xff) << 8) | (a[0] & 0xff);
             }
         }
         return outw;

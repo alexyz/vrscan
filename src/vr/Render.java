@@ -2,60 +2,27 @@ package vr;
 
 import vr.ui.ScanJF;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
-public class Main2627 {
+public class Render {
 
-    public static void main(String[] args) throws Exception {
-        File romDir = new File(args[0]);
-        File outDir = new File(System.getProperty("user.dir"));
+    public static class Opts {
+        public P2 trans;
+        public double scale = 1;
+        public double xRot, yRot, zRot;
+        public boolean dispNum;
+        public Set<Integer> numFilter, dlFilter;
 
-        //String[] romFiles = new String[]{"mpr-14890.26", "mpr-14891.27"};
-        //byte[] roms = Roms.loadRom(romDir, romFiles);
-        Roms roms = new Roms(romDir);
-        int[] romWords = roms.loadSwap(Roms.RB.polygons);
-
-        List<DL> lists = Polygons.loadDisplayLists(romWords);
-
-
-        System.out.println("paralists.size=" + lists.size());
-
-
-        Scene bf = new Scene(Polygons.T1_START);
-        bf.dls.addAll(lists.stream().filter(l -> l.offset >= Polygons.T1_START && l.offset < Polygons.T1_END).toList());
-        Scene ap = new Scene(Polygons.T2_START);
-        ap.dls.addAll(lists.stream().filter(l -> l.offset >= Polygons.T2_START && l.offset < Polygons.T2_END).toList());
-        Scene bb = new Scene(Polygons.T3_START);
-        bb.dls.addAll(lists.stream().filter(l -> l.offset >= Polygons.T3_START && l.offset < Polygons.T3_END).toList());
-
-
-        for (Scene s : new Scene[]{bf, bb, ap}) {
-            {
-                BufferedImage im = new BufferedImage(1024, 1024, BufferedImage.TYPE_3BYTE_BGR);
-                Graphics2D g = (Graphics2D) im.getGraphics();
-                g.setClip(0, 0, im.getWidth(), im.getHeight());
-                drawImage2(s, g, new P2(), 1, 0, 0,0,false, Collections.emptySet(), Collections.emptySet());
-                String file = String.format("scenes\\m2scene%x.png", s.minPos());
-                System.out.println("writing " + file);
-                ImageIO.write(im, "png", new File(outDir, file));
-            }
+        @Override
+        public String toString() {
+            return String.format("%s[t=%s sf=%.1f r=%.1f,%.1f,%.1f n=%s nf=%d dlf=%d]",
+                    getClass().getSimpleName(), trans, scale, xRot, yRot, zRot, dispNum, numFilter.size(), dlFilter.size());
         }
-
-
     }
 
     // draw independent of scene size
-    public static void drawImage2(Scene s, Graphics2D g,
-                                  P2 t,
-                                  double sf,
-                                  double xr, double yr, double zr,
-                                  boolean num, Set<Integer> numFilter, Set<Integer> dlFilter) {
+    public static void drawImage2(Scene s, Graphics2D g, Opts o) {
         Rectangle win = g.getClipBounds();
         int w = win.width;
         int h = win.height;
@@ -66,17 +33,17 @@ public class Main2627 {
         //System.out.println("norm2=" + norm2);
 
         // rotation matrix
-        M rot = M.rx(xr).mul(M.ry(yr)).mul(M.rz(zr));
+        M rot = M.rx(o.xRot).mul(M.ry(o.yRot)).mul(M.rz(o.zRot));
 
         // ortho projection of x,-z
         M proj2 = new M(4, 4).set(0,0,1).set(1,2,-1).set(3,3, 1);
 
         // scale to window size preserving aspect
-        double sf2 = (sf * Math.min(w, h)) / 2.0;
+        double sf2 = (o.scale * Math.min(w, h)) / 2.0;
         M winsc2 = M.scale4(sf2, sf2, 0);
 
         // translate to 0,0
-        M wintr2 = M.trans4((w / 2.0) + t.x, (h / 2.0) + t.y, 0);
+        M wintr2 = M.trans4((w / 2.0) + o.trans.x, (h / 2.0) + o.trans.y, 0);
 
         M total2 = wintr2.mul(winsc2.mul(proj2.mul(norm2.mul(rot)))).setRo();
         //M total2 = wintr2.mul(winsc2.mul(proj2.mul(norm2))).setRo();
@@ -128,7 +95,7 @@ public class Main2627 {
                 }
             }
 
-            if (in && (dlFilter.size() == 0 || dlFilter.contains(dl.offset))) {
+            if (in && (o.dlFilter.size() == 0 || o.dlFilter.contains(dl.offset))) {
                 P2 r2p = null, r3p = null;
 
                 for (int n = 0; n < dl.polys.size(); n++) {
@@ -169,7 +136,7 @@ public class Main2627 {
 
                     //g.setColor(Color.white);
                     //g.drawOval(s2p.x - 1, s2p.y -1, 2, 2);
-                    if (num && (numFilter.size() == 0 || numFilter.contains(n))) {
+                    if (o.dispNum && (o.numFilter.size() == 0 || o.numFilter.contains(n))) {
                         g.setColor(Color.red);
                         g.drawString(eq ? n + "-" : n + ":2", s2p.x - 6, s2p.y - 6); // upper
                     }
@@ -177,7 +144,7 @@ public class Main2627 {
                     if (!eq) {
                         //g.setColor(Color.white);
                         //g.drawOval(s3p.x - 1, s3p.y -1, 2, 2);
-                        if (num && (numFilter.size() == 0 || numFilter.contains(n))) {
+                        if (o.dispNum && (o.numFilter.size() == 0 || o.numFilter.contains(n))) {
                             g.setColor(Color.red);
                             g.drawString(n + ":3", s3p.x + 6, s3p.y + 6); // lower
                         }
@@ -199,8 +166,8 @@ public class Main2627 {
 
         g.setFont(ScanJF.MONO);
         g.setColor(Color.white);
-        g.drawString(String.format("%s", s), 16, 16);
-        g.drawString(String.format("t=%s sf=%s r=%s,%s,%s num=%s nf=%s dlf=%s", t, sf, xr, yr,zr, num, numFilter, dlFilter), 16, 32);
+        g.drawString(String.format("scene=%s", s), 16, 16);
+        g.drawString(String.format("opts=%s", o), 16, 32);
     }
 
 

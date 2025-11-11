@@ -1,6 +1,6 @@
 package vr.ui;
 
-import vr.Main2627;
+import vr.Render;
 import vr.P2;
 import vr.Scene;
 
@@ -45,7 +45,16 @@ public class SceneJC extends JComponent {
         g.drawString("c=" + r + " w=" + w + " h=" + h, 12, 48);
         g.drawString("tx=" + tx + " temptx=" + temptx + " zf=" + zoom, 12, 60);
         if (scene != null) {
-            Main2627.drawImage2(scene, (Graphics2D) g, tx.add(temptx), zoom, xr, yr, zr, num, numFilter, dlFilter);
+            Render.Opts o = new Render.Opts();
+            o.trans = tx.add(temptx);
+            o.scale = zoom;
+            o.xRot = xr;
+            o.yRot = yr;
+            o.zRot = zr;
+            o.dispNum = num;
+            o.numFilter = numFilter;
+            o.dlFilter = dlFilter;
+            Render.drawImage2(scene, (Graphics2D) g, o);
         }
     }
 

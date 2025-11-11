@@ -46,7 +46,7 @@ public class ScanJF extends JFrame {
     private final JTextField dirField = new JTextField(32);
     private final JSpinner startSpin = new JSpinner();
     private final JSpinner lenSpin = new JSpinner();
-    private World world;
+    private Polygons polys;
 
     public ScanJF() {
         setPreferredSize(new Dimension(1280, 960));
@@ -79,20 +79,15 @@ public class ScanJF extends JFrame {
             File romDir = new File(dirField.getText());
             System.out.println("init scenes " + romDir);
 
-            world = new World(new Roms(romDir));
-            world.init();
+            polys = new Polygons().load(new Roms(romDir));
 
-            System.out.println("dls.size=" + world.totalDls.size());
+            System.out.println("polys=" + polys);
 
-            startSpin.setModel(new SpinnerNumberModel(0, 0, world.totalDls.size(), 1));
-            lenSpin.setModel(new SpinnerNumberModel(1, 1, world.totalDls.size(), 1));
-
-            System.out.println("pas.size=" + world.pas.size());
-            for (int n = 0; n < Math.min(world.pas.size(), 16); n++) {
-                System.out.println(String.format("pa[%d]=%s", n, world.pas.get(n)));
-            }
+            startSpin.setModel(new SpinnerNumberModel(0, 0, polys.displayLists.size(), 1));
+            lenSpin.setModel(new SpinnerNumberModel(1, 1, polys.displayLists.size(), 1));
 
             Vector<SCI> sceneItems = new Vector<>();
+            World world = new World(polys);
             Arrays.asList(world.bf(), world.ap(), world.bb(), world.p()).stream().forEach(s -> sceneItems.add(new SCI(s)));
             sceneItems.add(new SCI(null));
 
@@ -111,7 +106,7 @@ public class ScanJF extends JFrame {
         int start = getStartModel().getNumber().intValue();
         int len = getLenModel().getNumber().intValue();
         System.out.println("custom scene " + start + ", " + len);
-        List<DL> subdls = world.totalDls.subList(start, Math.min(world.totalDls.size(), start + len));
+        List<DL> subdls = polys.displayLists.subList(start, Math.min(polys.displayLists.size(), start + len));
         Scene custom = new Scene(subdls.get(0).offset);
         custom.dls.addAll(subdls);
         setScene(custom);

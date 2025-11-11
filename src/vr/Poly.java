@@ -1,12 +1,12 @@
 package vr;
 
-public class Para {
+public class Poly {
     public int word;
     public final F3 s1 = new F3(), s2 = new F3(), s3 = new F3();
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof Para p) {
+        if (o instanceof Poly p) {
             return word == p.word && s1.equals(p.s1) && s2.equals(p.s2) && s3.equals(p.s3);
         } else {
             return false;

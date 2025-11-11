@@ -132,7 +132,7 @@ public class Main2627 {
                 P2 r2p = null, r3p = null;
 
                 for (int n = 0; n < dl.polys.size(); n++) {
-                    Para p = dl.polys.get(n);
+                    Poly p = dl.polys.get(n);
                     P2 s2p = total2.mul(p.s2.toM()).toP2();
                     P2 s3p = total2.mul(p.s3.toM()).toP2();
 

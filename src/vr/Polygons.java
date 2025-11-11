@@ -36,7 +36,7 @@ public class Polygons {
                 wp++;
 
             } else if (isPrefix(romWords[wp])) {
-                Para p = readPara(romWords, wp);
+                Poly p = readPara(romWords, wp);
                 if (isDummy(p)) {
                     //System.out.println(String.format("dummy p %x", wp * 4));
                     newlist = true;
@@ -60,7 +60,7 @@ public class Polygons {
         return lists;
     }
 
-    private static boolean isDummy(Para p) {
+    private static boolean isDummy(Poly p) {
         // 00021401 00000000 00000000 00000000 3F800000 C0000000 3F800000 3F800000 C0000000 BF800000
         // 00021401 00000000 3F800000 00000000 BF800000 C0000000 3F800000 BF800000 C0000000 BF800000
         if (p.word == 0x00021401) {
@@ -73,8 +73,8 @@ public class Polygons {
         return false;
     }
 
-    public static Para readPara(int[] words, int o) { // todo to Roms
-        Para p = new Para();
+    public static Poly readPara(int[] words, int o) { // todo to Roms
+        Poly p = new Poly();
         p.word = words[o + 0];
         readSeg(words, o + 1, p.s1);
         readSeg(words, o + 4, p.s2);

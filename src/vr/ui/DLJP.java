@@ -1,7 +1,7 @@
 package vr.ui;
 
 import vr.DL;
-import vr.Para;
+import vr.Poly;
 import vr.Scene;
 
 import javax.swing.*;
@@ -76,7 +76,7 @@ public class DLJP extends JPanel {
         if (dl != null) {
             sb.append(dl).append("\n");
             for (int n = 0; n < dl.polys.size(); n++) {
-                Para p = dl.polys.get(n);
+                Poly p = dl.polys.get(n);
                 sb.append(String.format("%-3d: %s", n, p.toString())).append("\n");
             }
         } else {

@@ -1,5 +1,6 @@
 package vr;
 
+import vr.m.*;
 import vr.ui.ScanJF;
 
 import java.awt.*;
@@ -33,19 +34,19 @@ public class Render {
         //System.out.println("norm2=" + norm2);
 
         // rotation matrix
-        M rot = M.rx(o.xRot).mul(M.ry(o.yRot)).mul(M.rz(o.zRot));
+        M rot = M4.rx(o.xRot).mul(M4.ry(o.yRot)).mul(M4.rz(o.zRot));
 
         // ortho projection of x,-z
-        M proj2 = new M(4, 4).set(0,0,1).set(1,2,-1).set(3,3, 1);
+        M proj2 = new M4().set(0,0,1).set(1,2,-1).set(3,3, 1);
 
         // scale to window size preserving aspect
         double sf2 = (o.scale * Math.min(w, h)) / 2.0;
-        M winsc2 = M.scale4(sf2, sf2, 0);
+        M winsc2 = M4.scale(sf2, sf2, 0);
 
         // translate to 0,0
-        M wintr2 = M.trans4((w / 2.0) + o.trans.x, (h / 2.0) + o.trans.y, 0);
+        M wintr2 = M4.trans((w / 2.0) + o.trans.x, (h / 2.0) + o.trans.y, 0);
 
-        M total2 = wintr2.mul(winsc2.mul(proj2.mul(norm2.mul(rot)))).setRo();
+        M total2 = wintr2.mul(winsc2.mul(proj2.mul(norm2.mul(rot))));
         //M total2 = wintr2.mul(winsc2.mul(proj2.mul(norm2))).setRo();
         //System.out.println("total2=" + total2);
 
@@ -62,7 +63,7 @@ public class Render {
         for (float x = -1; x <= 1; x += 0.5f) {
             for (float z = -1; z <= 1; z += 0.5f) {
                 F3 f = new F3().set(x, 0, z);
-                P2 p1 = wintr2.mul(winsc2.mul(proj2)).mul(f.toM()).toP2();
+                P2 p1 = wintr2.mul(winsc2.mul(proj2)).mul(f.toM1()).toP2();
                 g.setColor(Color.red);
                 g.setFont(ScanJF.MONO);
                 g.drawOval(p1.x - 2, p1.y - 2, 4, 4);
@@ -78,8 +79,8 @@ public class Render {
                 // trans  = windows size / 2 (to move origin to TL)
                 // then draw each point if it's (the PL) within the g ctx
 
-                P2 p1 = total2.mul(dl.min().toM()).toP2();
-                P2 p2 = total2.mul(dl.max().toM()).toP2();
+                P2 p1 = total2.mul(dl.min().toM1()).toP2();
+                P2 p2 = total2.mul(dl.max().toM1()).toP2();
                 //System.out.println("p1=" + p1 + " p2=" + p2);
                 P2 min = p1.min(p2);
                 P2 max = p1.max(p2);
@@ -100,8 +101,8 @@ public class Render {
 
                 for (int n = 0; n < dl.polys.size(); n++) {
                     Poly p = dl.polys.get(n);
-                    P2 s2p = total2.mul(p.s2.toM()).toP2();
-                    P2 s3p = total2.mul(p.s3.toM()).toP2();
+                    P2 s2p = total2.mul(p.s2.toM1()).toP2();
+                    P2 s3p = total2.mul(p.s3.toM1()).toP2();
 
                     if ((p.word & 0xff00000) != 0) {
                         if ((p.word & 0xf) == 1) {

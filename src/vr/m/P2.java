@@ -1,5 +1,8 @@
-package vr;
+package vr.m;
 
+/**
+ * 2d screen point
+ */
 public class P2 {
     public int x, y;
 
@@ -23,14 +26,6 @@ public class P2 {
     public P2 add(P2 p2) {
         return new P2(x+p2.x, y+p2.y);
     }
-
-//    public static P2 fromMatrix(SimpleMatrix m) {
-//        if (m.getNumRows() == 4 && m.getNumCols() == 1) {
-//            return new P2((int) m.get(0,0), (int) m.get(1,0));
-//        } else {
-//            throw new RuntimeException("m=" + Arrays.deepToString(m.toArray2()));
-//        }
-//    }
 
     public P2 min(P2 op) {
         if (x <= op.x && y <= op.y) {

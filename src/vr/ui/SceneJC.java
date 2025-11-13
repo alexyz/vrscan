@@ -1,8 +1,7 @@
 package vr.ui;
 
-import vr.Render;
-import vr.P2;
-import vr.Scene;
+import vr.*;
+import vr.m.*;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,5 +1,6 @@
 package vr;
 
+import vr.m.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,10 +47,10 @@ public class Scene {
 
     /** normalise to unit cube */
     public M normalisationMatrix2() {
-        return M.trans4(-1, -1, -1)
-                .mul(M.scale4(2, 2, 2))
+        return M4.trans(-1, -1, -1)
+                .mul(M4.scale(2, 2, 2))
                 .mul(unitSquare2())
-                .mul(zeroBase2()).setRo();
+                .mul(zeroBase2());
     }
 
     /** scale so point is within [0,1]^3 preserving aspect */
@@ -58,12 +59,12 @@ public class Scene {
         float yd = max().y - min().y;
         float zd = max().z - min().z;
         float max = Math.max(xd, Math.max(yd, zd));
-        return M.scale4(1 / max, 1 / max, 1 / max).setRo();
+        return M4.scale(1 / max, 1 / max, 1 / max);
     }
 
     /** translate so min point is 0 */
     public M zeroBase2() {
-        return M.trans4(-min().x, -min().y, -min().z).setRo();
+        return M4.trans(-min().x, -min().y, -min().z);
     }
 
     public F3 dim() {

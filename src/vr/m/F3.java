@@ -1,5 +1,8 @@
-package vr;
+package vr.m;
 
+/**
+ * 3d point
+ */
 public class F3 {
     public float x,y,z;
 
@@ -42,8 +45,8 @@ public class F3 {
         return this.x == x && this.y == y && this.z == z;
     }
 
-    public M toM() {
-        return M.hc(x,y,z);
+    public M1 toM1() {
+        return M1.hc(x,y,z);
     }
 
     @Override

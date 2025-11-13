@@ -1,5 +1,7 @@
 package vr;
 
+import vr.m.*;
+
 public class Poly {
     public int word;
     public final F3 s1 = new F3(), s2 = new F3(), s3 = new F3();

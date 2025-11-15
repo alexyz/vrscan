@@ -2,6 +2,8 @@ package vr;
 
 import vr.m.*;
 
+import java.awt.*;
+
 public class Poly {
     /** Q=1, T=2 */
     public static int type(int w) {
@@ -36,7 +38,8 @@ public class Poly {
     }
 
     public int word;
-    public int ta, tex, col;
+    public int texAddr, tex, col;
+    public Color colObj;
     public final F3 s1 = new F3(), s2 = new F3(), s3 = new F3();
 
     @Override
@@ -53,7 +56,7 @@ public class Poly {
         String ws = String.format("t=%s l=%d z=%d ta=%d m=%d bf=%d lm=%d",
                 type(word), link(word), zorder(word), texadr(word), moire(word), backface(word), lightmode(word));
 
-        String cs = String.format("ta=%x tex=%x col=%x", ta, tex, col);
+        String cs = String.format("ta=%x tex=%x col=%x", texAddr, tex, col);
 
         if (s2.equals(s3)) {
             return String.format("P[%8x [%s] [%s], %s, %s, -]", word, ws, cs, s1, s2);

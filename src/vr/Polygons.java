@@ -2,14 +2,16 @@ package vr;
 
 import vr.m.*;
 
+import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 
 public class Polygons {
     public List<DL> displayLists;
     public List<PA> polyAddrs;
     public short[] textures, palette;
+    public Color[] colors;
 
     public Polygons load(Roms roms) throws IOException {
         // load PA
@@ -18,6 +20,8 @@ public class Polygons {
         this.textures = loadTextures(roms);
         // load palette
         this.palette = loadPalette(roms);
+        this.colors = loadColors();
+
         // load display lists...
         this.displayLists = loadDisplayLists(roms.loadWords(Roms.RB.polygons));
 
@@ -32,15 +36,25 @@ public class Polygons {
                     Poly p = dl.polys.get(n);
                     ta += Poly.texadr(p.word);
                     if (Poly.link(p.word) > 0) {
-                        p.ta = ta;
+                        p.texAddr = ta;
                         p.tex = textures[ta - 0x40000] & 0xffff;
                         p.col = palette[p.tex & 0x3ff] & 0xffff;
+                        p.colObj = colors[p.tex & 0x3ff];
                     }
                 }
             }
         }
 
         return this;
+    }
+
+    private Color[] loadColors() {
+        Color[] colors = new Color[palette.length];
+        for (int n = 0; n < palette.length; n++) {
+            int c = palette[n] & 0xffff;
+            colors[n] = new Color(Poly.red(c), Poly.green(c), Poly.blue(c));
+        }
+        return colors;
     }
 
     private short[] loadPalette(Roms roms) throws IOException {

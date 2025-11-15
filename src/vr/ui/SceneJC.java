@@ -40,9 +40,9 @@ public class SceneJC extends JComponent {
         int h = getHeight();
         g.setColor(Color.black);
         g.fillRect(0, 0, w, h);
-        g.setColor(Color.white);
-        g.drawString("c=" + r + " w=" + w + " h=" + h, 12, 48);
-        g.drawString("tx=" + tx + " temptx=" + temptx + " zf=" + zoom, 12, 60);
+//        g.setColor(Color.white);
+//        g.drawString("c=" + r + " w=" + w + " h=" + h, 12, 48);
+//        g.drawString("tx=" + tx + " temptx=" + temptx + " zf=" + zoom, 12, 60);
         if (scene != null) {
             Render.Opts o = new Render.Opts();
             o.trans = tx.add(temptx);
@@ -54,7 +54,8 @@ public class SceneJC extends JComponent {
             o.numFilter = numFilter;
             o.dlFilter = dlFilter;
             //Render.drawImage2(scene, (Graphics2D) g, o);
-            Render2.drawImage2(scene, (Graphics2D) g, o);
+            //Render2.drawImage2(scene, (Graphics2D) g, o);
+            Render3.drawImage2(scene, (Graphics2D) g, o);
         }
     }
 

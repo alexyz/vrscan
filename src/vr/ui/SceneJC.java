@@ -53,7 +53,8 @@ public class SceneJC extends JComponent {
             o.dispNum = num;
             o.numFilter = numFilter;
             o.dlFilter = dlFilter;
-            Render.drawImage2(scene, (Graphics2D) g, o);
+            //Render.drawImage2(scene, (Graphics2D) g, o);
+            Render2.drawImage2(scene, (Graphics2D) g, o);
         }
     }
 

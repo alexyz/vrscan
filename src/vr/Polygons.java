@@ -25,6 +25,19 @@ public class Polygons {
         for (DL dl : displayLists) {
             int exPa = (dl.offset + 16) / 4;
             dl.pa = polyAddrs.stream().filter(pa -> pa.polyAddr == exPa).findFirst().orElse(null);
+
+            if (dl.pa != null) {
+                int ta = dl.pa.texAddr;
+                for (int n = 1; n < dl.polys.size(); n++) {
+                    Poly p = dl.polys.get(n);
+                    ta += Poly.texadr(p.word);
+                    if (Poly.link(p.word) > 0) {
+                        p.ta = ta;
+                        p.tex = textures[ta - 0x40000] & 0xffff;
+                        p.col = palette[p.tex & 0x3ff] & 0xffff;
+                    }
+                }
+            }
         }
 
         return this;

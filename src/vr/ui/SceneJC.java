@@ -16,11 +16,11 @@ public class SceneJC extends JComponent {
     private final P2 temptx = new P2();
 
     private Scene scene;
-    private double zoom = 1;
+    private float zoom = 1;
     private boolean num;
     private final Set<Integer> numFilter = new TreeSet<>();
     private final Set<Integer> dlFilter = new TreeSet<>();
-    private double xr, yr, zr;
+    private float xr, yr, zr;
 
     public SceneJC() {
         SceneMA ma = new SceneMA();
@@ -74,7 +74,7 @@ public class SceneJC extends JComponent {
         repaint();
     }
 
-    public void setRot(double xr, double yr, double zr) {
+    public void setRot(float xr, float yr, float zr) {
         this.xr = xr;
         this.yr = yr;
         this.zr = zr;
@@ -118,7 +118,7 @@ public class SceneJC extends JComponent {
         public void mouseWheelMoved(MouseWheelEvent e) {
             //System.out.println("wheel " + e);
             int d = e.getWheelRotation();
-            zoom = zoom * Math.pow(1.125, -d);
+            zoom = (float) (zoom * Math.pow(1.125, -d));
             repaint();
         }
     }

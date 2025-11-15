@@ -5,9 +5,9 @@ package vr.m;
  */
 public abstract class M {
 
-    public abstract M set(int r, int c, double v);
+    public abstract M set(int r, int c, float v);
 
-    public abstract double get(int r, int c);
+    public abstract float get(int r, int c);
 
     public abstract int nc();
 
@@ -17,7 +17,7 @@ public abstract class M {
 
     public P2 toP2() { throw new RuntimeException(); }
 
-    public M setAll(double... v) {
+    public M setAll(float... v) {
         if (v.length == nr() * nc()) {
             for (int r = 0; r < nr(); r++) {
                 for (int c = 0; c < nc(); c++) {

@@ -6,19 +6,19 @@ package vr.m;
 public class M4 extends M {
 
     public static void main(String[] args) {
-        M a = new M4().setAll(1, 2, 3, 3.5, 4, 5, 6, 6.5, 7, 8, 9, 9.5, 10, 11, 12, 13);
-        M b = new M4().setAll(9, 8, 7, 7.5, 6, 5, 4, 4.5, 3, 2, 1, 1.5, -1, -2, -3, -4);
+        M a = new M4().setAll(1, 2, 3, 3.5f, 4, 5, 6, 6.5f, 7, 8, 9, 9.5f, 10, 11, 12, 13);
+        M b = new M4().setAll(9, 8, 7, 7.5f, 6, 5, 4, 4.5f, 3, 2, 1, 1.5f, -1, -2, -3, -4);
         M ab = a.mul(b);
-        M exAb = new M4().setAll(26.5, 17.0, 7.5, 7.0, 77.5, 56.0, 34.5, 35.5, 128.5, 95.0, 61.5, 64.0, 179.0, 133.0, 87.0, 90.5);
+        M exAb = new M4().setAll(26.5f, 17f, 7.5f, 7f, 77.5f, 56, 34.5f, 35.5f, 128.5f, 95, 61.5f, 64, 179, 133, 87, 90.5f);
         System.out.println("ab=" + ab);
         if (!ab.equalValue(exAb)) {
             throw new RuntimeException();
         }
 
-        M d = new M1().setAll(9, 8, 7, 7.5);
+        M d = new M1().setAll(9, 8, 7, 7.5f);
         M ad = a.mul(d);
         System.out.println("ad=" + ad);
-        M exAd = new M1().setAll(72.25, 166.75, 261.25, 359.5);
+        M exAd = new M1().setAll(72.25f, 166.75f, 261.25f, 359.5f);
         if (!ad.equalValue(exAd)) {
             throw new RuntimeException();
         }
@@ -30,7 +30,7 @@ public class M4 extends M {
         return m;
     }
 
-    public static M4 trans(double x, double y, double z) {
+    public static M4 trans(float x, float y, float z) {
         M4 m = id();
         m.r0c3 = x;
         m.r1c3 = y;
@@ -38,7 +38,7 @@ public class M4 extends M {
         return m;
     }
 
-    public static M4 scale(double x, double y, double z) {
+    public static M4 scale(float x, float y, float z) {
         M4 m = id();
         m.r0c0 = x;
         m.r1c1 = y;
@@ -46,8 +46,8 @@ public class M4 extends M {
         return m;
     }
 
-    public static M4 rx(double t) {
-        double ct = Math.cos(t), st = Math.sin(t);
+    public static M4 rx(float t) {
+        float ct = (float) Math.cos(t), st = (float) Math.sin(t);
         M4 m = id();
         m.r1c1 = ct;
         m.r1c2 = -st;
@@ -56,8 +56,8 @@ public class M4 extends M {
         return m;
     }
 
-    public static M4 ry(double t) {
-        double ct = Math.cos(t), st = Math.sin(t);
+    public static M4 ry(float t) {
+        float ct = (float) Math.cos(t), st = (float) Math.sin(t);
         M4 m = id();
         m.r0c0 = ct;
         m.r0c2 = st;
@@ -66,8 +66,8 @@ public class M4 extends M {
         return m;
     }
 
-    public static M4 rz(double t) {
-        double ct = Math.cos(t), st = Math.sin(t);
+    public static M4 rz(float t) {
+        float ct = (float) Math.cos(t), st = (float) Math.sin(t);
         M4 m = id();
         m.r0c0 = ct;
         m.r0c1 = -st;
@@ -76,10 +76,10 @@ public class M4 extends M {
         return m;
     }
 
-    public double r0c0, r0c1, r0c2, r0c3;
-    public double r1c0, r1c1, r1c2, r1c3;
-    public double r2c0, r2c1, r2c2, r2c3;
-    public double r3c0, r3c1, r3c2, r3c3;
+    public float r0c0, r0c1, r0c2, r0c3;
+    public float r1c0, r1c1, r1c2, r1c3;
+    public float r2c0, r2c1, r2c2, r2c3;
+    public float r3c0, r3c1, r3c2, r3c3;
 
     @Override
     public int nc() {
@@ -91,7 +91,7 @@ public class M4 extends M {
         return 4;
     }
 
-    public M4 set(int r, int c, double v) {
+    public M4 set(int r, int c, float v) {
         if (r >= 0 && r < 4 && c >= 0 && c < 4) {
             switch (r * 4 + c) {
                 case 0:
@@ -148,7 +148,7 @@ public class M4 extends M {
         throw new RuntimeException();
     }
 
-    public double get(int r, int c) {
+    public float get(int r, int c) {
         if (r >= 0 && r < 4 && c >= 0 && c < 4) {
             switch (r * 4 + c) {
                 case 0:

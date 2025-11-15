@@ -10,8 +10,8 @@ public class Render {
 
     public static class Opts {
         public P2 trans;
-        public double scale = 1;
-        public double xRot, yRot, zRot;
+        public float scale = 1;
+        public float xRot, yRot, zRot;
         public boolean dispNum;
         public Set<Integer> numFilter, dlFilter;
 
@@ -40,11 +40,11 @@ public class Render {
         M proj2 = new M4().set(0,0,1).set(1,2,-1).set(3,3, 1);
 
         // scale to window size preserving aspect
-        double sf2 = (o.scale * Math.min(w, h)) / 2.0;
+        float sf2 = (o.scale * Math.min(w, h)) / 2f;
         M winsc2 = M4.scale(sf2, sf2, 0);
 
         // translate to 0,0
-        M wintr2 = M4.trans((w / 2.0) + o.trans.x, (h / 2.0) + o.trans.y, 0);
+        M wintr2 = M4.trans((w / 2f) + o.trans.x, (h / 2f) + o.trans.y, 0);
 
         M total2 = wintr2.mul(winsc2.mul(proj2.mul(norm2.mul(rot))));
         //M total2 = wintr2.mul(winsc2.mul(proj2.mul(norm2))).setRo();

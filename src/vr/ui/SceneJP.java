@@ -50,8 +50,8 @@ public class SceneJP extends JPanel {
         sceneJc.setRot(getRadians(xSpin), getRadians(ySpin), getRadians(zSpin));
     }
 
-    private static double getRadians(JSpinner spin) {
-        return Math.toRadians(((SpinnerNumberModel) spin.getModel()).getNumber().doubleValue());
+    private static float getRadians(JSpinner spin) {
+        return (float) Math.toRadians(((SpinnerNumberModel) spin.getModel()).getNumber().floatValue());
     }
 
     private void dlFieldActionEvent() {

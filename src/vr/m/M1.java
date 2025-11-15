@@ -5,7 +5,7 @@ package vr.m;
  */
 public class M1 extends M {
 
-    public static M1 hc(double x, double y, double z) {
+    public static M1 hc(float x, float y, float z) {
         M1 m = new M1();
         m.r0 = x;
         m.r1 = y;
@@ -14,16 +14,24 @@ public class M1 extends M {
         return m;
     }
 
-    public double r0, r1, r2, r3;
+    public float r0, r1, r2, r3;
 
     @Override
-    public M set(int r, int c, double v) {
+    public M set(int r, int c, float v) {
         if (r >= 0 && r < 4 && c == 0) {
             switch (r) {
-                case 0: r0 = v; break;
-                case 1: r1 = v; break;
-                case 2: r2 = v; break;
-                case 3: r3 = v; break;
+                case 0:
+                    r0 = v;
+                    break;
+                case 1:
+                    r1 = v;
+                    break;
+                case 2:
+                    r2 = v;
+                    break;
+                case 3:
+                    r3 = v;
+                    break;
             }
             return this;
         }
@@ -31,13 +39,17 @@ public class M1 extends M {
     }
 
     @Override
-    public double get(int r, int c) {
+    public float get(int r, int c) {
         if (r >= 0 && r < 4 && c == 0) {
             switch (r) {
-                case 0: return r0;
-                case 1: return r1;
-                case 2: return r2;
-                case 3: return r3;
+                case 0:
+                    return r0;
+                case 1:
+                    return r1;
+                case 2:
+                    return r2;
+                case 3:
+                    return r3;
             }
         }
         throw new RuntimeException();
@@ -63,15 +75,13 @@ public class M1 extends M {
     }
 
     public P2 toP2(P2 out) {
-            double x = r0;
-            double y = r1;
-            if (Double.isFinite(x) && Double.isFinite(y)) {
-                out.x = (int) Math.round(x);
-                out.y = (int) Math.round(y);
-                return out;
-            } else {
-                throw new RuntimeException();
-            }
+        if (Double.isFinite(r0) && Double.isFinite(r1)) {
+            out.x = Math.round(r0);
+            out.y = Math.round(r1);
+            return out;
+        } else {
+            throw new RuntimeException();
+        }
     }
 
 }

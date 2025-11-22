@@ -8,12 +8,15 @@ import java.util.Set;
 
 public class Render {
 
+    public enum Renderer { R1, R3 }
+
     public static class Opts {
         public P2 trans;
         public float scale = 1;
         public float xRot, yRot, zRot;
         public boolean dispNum;
         public Set<Integer> numFilter, dlFilter;
+        public Renderer render;
 
         @Override
         public String toString() {
@@ -104,6 +107,7 @@ public class Render {
                     P2 s2p = total2.mul(p.s2.toM1()).toP2();
                     P2 s3p = total2.mul(p.s3.toM1()).toP2();
 
+                    //if ((p.word & 0xff_00_00_00) != 0) {
                     if ((p.word & 0xff00000) != 0) {
                         if ((p.word & 0xf) == 1) {
                             // draw Q
@@ -113,7 +117,7 @@ public class Render {
                                 g.drawLine(s2p.x, s2p.y, r2p.x, r2p.y);
                                 g.drawLine(s3p.x, s3p.y, r3p.x, r3p.y);
                             } else {
-                                System.out.println(String.format("invalid Q %x:%d", dl.offset, n));
+                                System.out.println(String.format("invalid Q offset %x n %d poly %s", dl.offset, n, p));
                             }
                         } else if ((p.word & 0xf) == 2) {
                             // draw T

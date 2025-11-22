@@ -13,17 +13,25 @@ public class Polygons {
     public short[] textures, palette;
     public Color[] colors;
 
-    public Polygons load(Roms roms) throws IOException {
-        // load PA
-        this.polyAddrs = loadPolyAddrs(roms.loadWords(Roms.RB.mainCpu1));
-        // load TGP
-        this.textures = loadTextures(roms);
-        // load palette
-        this.palette = loadPalette(roms);
-        this.colors = loadColors();
+    public Polygons load(Roms roms, Game g) throws IOException {
+        if (g == Game.vr) {
+            // load PA
+            this.polyAddrs = loadPolyAddrs(roms.loadWords(Game.vr, Bank.mainCpu1));
+            // load TGP
+            this.textures = loadTextures(roms);
+            // load palette
+            this.palette = loadPalette(roms);
+            this.colors = loadColors();
+        } else {
+            this.polyAddrs = Collections.emptyList();
+            this.textures = new short[0];
+            this.palette = new short[0];
+            this.colors = new Color[0];
+        }
 
         // load display lists...
-        this.displayLists = loadDisplayLists(roms.loadWords(Roms.RB.polygons));
+        this.displayLists = loadDisplayLists(roms.loadWords(g, Bank.polygons));
+
 
         // copy pa into dl
         for (DL dl : displayLists) {
@@ -58,7 +66,7 @@ public class Polygons {
     }
 
     private short[] loadPalette(Roms roms) throws IOException {
-        short[] data = roms.loadHalfWords(Roms.RB.mainCpu1);
+        short[] data = roms.loadHalfWords(Game.vr, Bank.mainCpu1);
         int p = 0xEC980 / 2;
         short[] a = new short[0x400];
         for (int n = 0; n < a.length; n++) {
@@ -68,7 +76,7 @@ public class Polygons {
     }
 
     private short[] loadTextures(Roms roms) throws IOException {
-        short[] data = roms.loadHalfWords(Roms.RB.mainCpu1);
+        short[] data = roms.loadHalfWords(Game.vr, Bank.mainCpu1);
         short[] a = new short[0x60000];
         for (int n = 0; n < a.length; n++) {
             a[n] = data[n];
@@ -157,6 +165,10 @@ public class Polygons {
 
     //  void model1_state::push_object(uint32_t tex_adr, uint32_t poly_adr, uint32_t size)
     // 0180 1b02
+    //   18 1801
+    //   98 1902
+    // 0180 0303 (mask?)
+
     // n1 = 0
     // n2 = 0,1 - paint?
     // n3 = 0,8 - paint?
@@ -166,10 +178,12 @@ public class Polygons {
     // n7 = 0
     // n8 = 1,2 (Q, T)
     public static boolean isPrefix(int i) { // todo to Roms
-        int i1 = i & 0xff_00_00_00;
-        if (i1 == 0 || i1 == 0x1_00_00_00) { // byte 1 is [01]
-            int i2 = i & 0xf0_00_00;
-            if (i2 == 0 || i2 == 0x80_00_00) { // upper byte 2 is [08], lower byte is any
+        //int i1 = i & 0xff_00_00_00;
+        int i1 = (i >> 24) & 0xff;
+        if (i1 == 0 || i1 == 1) { // byte 1 is [01]
+            //int i2 = i & 0xf0_00_00;
+            int i2 = (i >> 20) & 0xf;
+            if (i2 == 0 || i2 == 1 || i2 == 8 || i2 == 9) { // lower byte is any
                 int i3 = i & 0xf0_00;
                 if (i3 == 0x10_00 || i3 == 0x30_00 || i3 == 0x50_00 || i3 == 0x70_00) { // upper byte 3 is [1357], lower byte is any
                     int i4 = i & 0xff;

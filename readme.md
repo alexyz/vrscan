@@ -1,6 +1,8 @@
 # vrscan
 
-experiments to scan the virtua racing arcade (sega, 1992) roms for 3d track geometry
+experiments to scan the sega model 1 arcade game roms for 3d geometry
+
+the best supported game is virtua racing arcade (sega, 1992)
 
 the roms themselves are not part of this project, and this project is not associated with sega
 

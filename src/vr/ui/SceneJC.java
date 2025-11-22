@@ -17,10 +17,11 @@ public class SceneJC extends JComponent {
 
     private Scene scene;
     private float zoom = 1;
-    private boolean num;
-    private final Set<Integer> numFilter = new TreeSet<>();
-    private final Set<Integer> dlFilter = new TreeSet<>();
-    private float xr, yr, zr;
+//    private boolean num;
+//    private final Set<Integer> numFilter = new TreeSet<>();
+//    private final Set<Integer> dlFilter = new TreeSet<>();
+//    private float xr, yr, zr;
+    private Render.Opts opts;
 
     public SceneJC() {
         SceneMA ma = new SceneMA();
@@ -35,7 +36,7 @@ public class SceneJC extends JComponent {
 
     @Override
     protected void paintComponent(Graphics g) {
-        Rectangle r = g.getClipBounds();
+        //Rectangle r = g.getClipBounds();
         int w = getWidth();
         int h = getHeight();
         g.setColor(Color.black);
@@ -43,45 +44,57 @@ public class SceneJC extends JComponent {
 //        g.setColor(Color.white);
 //        g.drawString("c=" + r + " w=" + w + " h=" + h, 12, 48);
 //        g.drawString("tx=" + tx + " temptx=" + temptx + " zf=" + zoom, 12, 60);
-        if (scene != null) {
-            Render.Opts o = new Render.Opts();
-            o.trans = tx.add(temptx);
-            o.scale = zoom;
-            o.xRot = xr;
-            o.yRot = yr;
-            o.zRot = zr;
-            o.dispNum = num;
-            o.numFilter = numFilter;
-            o.dlFilter = dlFilter;
+        if (scene != null && opts != null) {
+//            Render.Opts o = new Render.Opts();
+//            o.trans = tx.add(temptx);
+//            o.scale = zoom;
+//            o.xRot = xr;
+//            o.yRot = yr;
+//            o.zRot = zr;
+//            o.dispNum = num;
+//            o.numFilter = numFilter;
+//            o.dlFilter = dlFilter;
+            opts.trans = tx.add(temptx);
+            opts.scale = zoom;
+            switch (opts.render) {
+                case R1: Render.drawImage2(scene, (Graphics2D) g, opts); break;
+                case R3: Render3.drawImage2(scene, (Graphics2D) g, opts); break;
+                default: throw new RuntimeException();
+            }
             //Render.drawImage2(scene, (Graphics2D) g, o);
             //Render2.drawImage2(scene, (Graphics2D) g, o);
-            Render3.drawImage2(scene, (Graphics2D) g, o);
+            //Render3.drawImage2(scene, (Graphics2D) g, o);
         }
     }
 
-    public void setNumbers(boolean num) {
-        this.num = num;
+    public void setOpts(Render.Opts opts) {
+        this.opts = opts;
         repaint();
     }
 
-    public void setNumberFilter(Set<Integer> set) {
-        numFilter.clear();
-        numFilter.addAll(set);
-        repaint();
-    }
-
-    public void setDlFilter(Set<Integer> set) {
-        dlFilter.clear();
-        dlFilter.addAll(set);
-        repaint();
-    }
-
-    public void setRot(float xr, float yr, float zr) {
-        this.xr = xr;
-        this.yr = yr;
-        this.zr = zr;
-        repaint();
-    }
+//    public void setNumbers(boolean num) {
+//        this.num = num;
+//        repaint();
+//    }
+//
+//    public void setNumberFilter(Set<Integer> set) {
+//        numFilter.clear();
+//        numFilter.addAll(set);
+//        repaint();
+//    }
+//
+//    public void setDlFilter(Set<Integer> set) {
+//        dlFilter.clear();
+//        dlFilter.addAll(set);
+//        repaint();
+//    }
+//
+//    public void setRot(float xr, float yr, float zr) {
+//        this.xr = xr;
+//        this.yr = yr;
+//        this.zr = zr;
+//        repaint();
+//    }
 
     private class SceneMA extends MouseAdapter {
 

@@ -1,6 +1,6 @@
 package vr.ui;
 
-import vr.Roms;
+import vr.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -60,7 +60,8 @@ public class BinJF extends JFrame {
     }
 
     private final JTextField dirField = new JTextField(20);
-    private final JComboBox<Roms.RB> romBox = new JComboBox<>(Roms.RB.values());
+    private final JComboBox<Game> gameBox = new JComboBox<>(Game.values());
+    private final JComboBox<Bank> bankBox = new JComboBox<>(Bank.values());
     private final JSpinner sizeSpin = new JSpinner(new SpinnerNumberModel(32, 1, 1024000, 1));
     private final JSpinner offsetSpin = new JSpinner(new SpinnerNumberModel(0, -16777216, 16777216, 65536));
     private final JComboBox<BinJC.Opt.Format> formatBox = new JComboBox<>(BinJC.Opt.Format.values());
@@ -78,11 +79,15 @@ public class BinJF extends JFrame {
         swapBox.addChangeListener(e -> updateView());
         dirField.setText(PREFS.get("romDir", System.getProperty("user.dir")));
         dirField.addActionListener(e -> loadRoms());
-        romBox.addItemListener(e -> setData());
+        gameBox.addItemListener(e -> setData());
+        bankBox.addItemListener(e -> setData());
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
+        top.add(new JLabel("Dir"));
+        top.add(dirField);
         top.add(new JLabel("Rom"));
-        top.add(romBox);
+        top.add(gameBox);
+        top.add(bankBox);
         top.add(new JLabel("Size"));
         top.add(sizeSpin);
         top.add(new JLabel("Offset"));
@@ -97,21 +102,22 @@ public class BinJF extends JFrame {
     private void loadRoms() {
         try {
             roms = new Roms(new File(dirField.getText()));
+            PREFS.put("romDir", dirField.getText());
             setData();
         } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, e.toString());
+            JOptionPane.showMessageDialog(this, ScanJF.wrapStr(e.toString()));
         }
     }
 
     private void setData() {
         try {
-            binJc.setData(roms.load((Roms.RB) romBox.getSelectedItem()));
+            binJc.setData(roms.load((Game) gameBox.getSelectedItem(), (Bank) bankBox.getSelectedItem()));
             updateView();
             repaint();
         } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, e.toString());
+            JOptionPane.showMessageDialog(this, ScanJF.wrapStr(e.toString()));
         }
     }
 

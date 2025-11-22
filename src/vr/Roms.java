@@ -8,8 +8,6 @@ import java.util.TreeMap;
 
 public class Roms {
 
-    public enum RB {mainCpu1, mainCpu2, mainCpu3, polygons, tgpData}
-
     public static void main(String[] args) throws Exception {
         File romDir = new File(args[0]);
         File outDir = new File(System.getProperty("user.dir"));
@@ -31,19 +29,19 @@ public class Roms {
         // need to do them manually, unless there are pointers in the data rom
 
         Roms roms = new Roms(romDir);
-        writeBytes(new File(outDir, "maincpu1.bin"), roms.load(RB.mainCpu1));
-        writeBytes(new File(outDir, "maincpu2.bin"), roms.load(RB.mainCpu2));
-        writeBytes(new File(outDir, "maincpu3.bin"), roms.load(RB.mainCpu3));
-        writeIntsBe(new File(outDir, "polygons.swap.bin"), roms.loadWords((RB.polygons)));
-        writeBytes(new File(outDir, "tgpdata.bin"), roms.load(RB.tgpData));
-        writeIntsBe(new File(outDir, "tgpdata.swap.bin"), roms.loadWords(RB.tgpData));
+        writeBytes(new File(outDir, "maincpu1.bin"), roms.load(Game.vr, Bank.mainCpu1));
+        writeBytes(new File(outDir, "maincpu2.bin"), roms.load(Game.vr, Bank.mainCpu2));
+        writeBytes(new File(outDir, "maincpu3.bin"), roms.load(Game.vr, Bank.mainCpu3));
+        writeIntsBe(new File(outDir, "polygons.swap.bin"), roms.loadWords(Game.vr, Bank.polygons));
+        writeBytes(new File(outDir, "tgpdata.bin"), roms.load(Game.vr, Bank.tgpData));
+        writeIntsBe(new File(outDir, "tgpdata.swap.bin"), roms.loadWords(Game.vr, Bank.tgpData));
 
     }
 
     private final File romDir;
-    private Map<RB, byte[]> bytes = new TreeMap<>();
-    private Map<RB, int[]> words = new TreeMap<>();
-    private Map<RB, short[]> halfWords = new TreeMap<>();
+    private Map<Game, Map<Bank, byte[]>> bytes = new TreeMap<>();
+    private Map<Game, Map<Bank, int[]>> words = new TreeMap<>();
+    private Map<Game, Map<Bank, short[]>> halfWords = new TreeMap<>();
 
     public Roms(File romDir) {
         if (!romDir.isDirectory()) {
@@ -52,99 +50,62 @@ public class Roms {
         this.romDir = romDir;
     }
 
-    private byte[] loadMainCpu1() throws IOException {
-        // ROM_LOAD16_BYTE( "epr-14882.14",  0x200000, 0x80000,
-        // ROM_LOAD16_BYTE( "epr-14883.15",  0x200001, 0x80000,
-        return loadRomsAlt(new String[]{"epr-14882.14", "epr-14883.15"}, 1);
-    }
-
-    private byte[] loadMainCpu2() throws IOException {
-        // ROM_LOAD( "epr-14878a.4", 0xfc0000, 0x20000,
-        // ROM_LOAD( "epr-14879a.5", 0xfe0000, 0x20000,
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(0x20000 * 2)) {
-            bos.write(loadRom("epr-14878a.4"));
-            bos.write(loadRom("epr-14879a.5"));
-            return bos.toByteArray();
+    private byte[] loadAny(File dir, Names load) throws IOException {
+        switch (load.type) {
+            case load:
+                return loadRom(dir, load.names[0]);
+            case loadAltByte:
+                return loadRomsAlt(dir, load.names, 1);
+            case loadAltWord:
+                return loadRomsAlt(dir, load.names, 2);
+            default:
+                throw new RuntimeException();
         }
     }
 
-    private byte[] loadMainCpu3() throws IOException {
-        // ROM_LOAD16_BYTE( "mpr-14880.6",  0x1000000, 0x80000,
-        // ROM_LOAD16_BYTE( "mpr-14881.7",  0x1000001, 0x80000,
-        // ROM_LOAD16_BYTE( "mpr-14884.8",  0x1100000, 0x80000,
-        // ROM_LOAD16_BYTE( "mpr-14885.9",  0x1100001, 0x80000,
-        // ROM_LOAD16_BYTE( "mpr-14886.10", 0x1200000, 0x80000,
-        // ROM_LOAD16_BYTE( "mpr-14887.11", 0x1200001, 0x80000,
-        // ROM_LOAD16_BYTE( "mpr-14888.12", 0x1300000, 0x80000,
-        // ROM_LOAD16_BYTE( "mpr-14889.13", 0x1300001, 0x80000,
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(0x80000 * 8)) {
-            bos.write(loadRomsAlt(new String[]{"mpr-14880.6", "mpr-14881.7"}, 1));
-            bos.write(loadRomsAlt(new String[]{"mpr-14884.8", "mpr-14885.9"}, 1));
-            bos.write(loadRomsAlt(new String[]{"mpr-14886.10", "mpr-14887.11"}, 1));
-            bos.write(loadRomsAlt(new String[]{"mpr-14888.12", "mpr-14889.13"}, 1));
-            return bos.toByteArray();
-        }
-    }
-
-    private byte[] loadPolygons() throws IOException {
-        // ROM_LOAD32_WORD( "mpr-14890.26",  0x000000, 0x200000,
-        // ROM_LOAD32_WORD( "mpr-14891.27",  0x000002, 0x200000,
-        // ROM_LOAD32_WORD( "mpr-14892.28",  0x400000, 0x200000,
-        // ROM_LOAD32_WORD( "mpr-14893.29",  0x400002, 0x200000,
-        // ROM_LOAD32_WORD( "mpr-14894.30",  0x800000, 0x200000,
-        // ROM_LOAD32_WORD( "mpr-14895.31",  0x800002, 0x200000,
-        // ROM_LOAD32_WORD( "mpr-14896.32",  0xc00000, 0x200000,
-        // ROM_LOAD32_WORD( "mpr-14897.33",  0xc00002, 0x200000,
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(0x200000 * 8)) {
-            bos.write(loadRomsAlt(new String[]{"mpr-14890.26", "mpr-14891.27"}, 2));
-            bos.write(loadRomsAlt(new String[]{"mpr-14892.28", "mpr-14893.29"}, 2));
-            bos.write(loadRomsAlt(new String[]{"mpr-14894.30", "mpr-14895.31"}, 2));
-            bos.write(loadRomsAlt(new String[]{"mpr-14896.32", "mpr-14897.33"}, 2));
-            return bos.toByteArray();
-        }
-    }
-
-    private byte[] loadTgpData() throws IOException {
-        // ROM_LOAD32_BYTE( "mpr-14898.39",  0x000000,  0x80000,
-        // ROM_LOAD32_BYTE( "mpr-14899.40",  0x000001,  0x80000,
-        // ROM_LOAD32_BYTE( "mpr-14900.41",  0x000002,  0x80000,
-        // ROM_LOAD32_BYTE( "mpr-14901.42",  0x000003,  0x80000,
-        return loadRomsAlt(new String[]{"mpr-14898.39", "mpr-14899.40", "mpr-14900.41", "mpr-14901.42"}, 1);
-    }
-
-    public byte[] load(RB rb) throws IOException {
-        byte[] b = bytes.get(rb);
-        if (b == null) {
-            switch (rb) {
-                case mainCpu1: b = loadMainCpu1(); break;
-                case mainCpu2: b = loadMainCpu2(); break;
-                case mainCpu3: b = loadMainCpu3(); break;
-                case polygons: b = loadPolygons(); break;
-                case tgpData: b = loadTgpData(); break;
-                default: throw new RuntimeException();
+    public byte[] loadMany(File dir, Names[] names) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            for (Names name : names) {
+                bos.write(loadAny(dir, name));
             }
-            bytes.put(rb, b);
+            return bos.toByteArray();
+        }
+    }
+
+    public byte[] load(Game g, Bank rb) throws IOException {
+        Map<Bank, byte[]> bytes2 = bytes.computeIfAbsent(g, k -> new TreeMap<>());
+        byte[] b = bytes2.get(rb);
+        if (b == null) {
+            Names[] loads = Games.instance.get(g, rb);
+            if (loads != null) {
+                b = loadMany(new File(romDir, g.name()), loads);
+            } else {
+                b = new byte[0];
+            }
+            bytes2.put(rb, b);
         }
         return b;
     }
 
-    public int[] loadWords(RB bank) throws IOException {
-        int[] w = words.get(bank);
+    public int[] loadWords(Game g, Bank bank) throws IOException {
+        Map<Bank, int[]> words2 = words.computeIfAbsent(g, k -> new TreeMap<>());
+        int[] w = words2.get(bank);
         if (w == null) {
-            words.put(bank, w = swap32(load(bank)));
+            words2.put(bank, w = swap32(load(g, bank)));
         }
         return w;
     }
 
-    public short[] loadHalfWords(RB bank) throws IOException {
-        short[] hw = halfWords.get(bank);
+    public short[] loadHalfWords(Game g, Bank bank) throws IOException {
+        Map<Bank, short[]> words2 = halfWords.computeIfAbsent(g, k -> new TreeMap<>());
+        short[] hw = words2.get(bank);
         if (hw == null) {
-            halfWords.put(bank, hw = swap16(load(bank)));
+            words2.put(bank, hw = swap16(load(g, bank)));
         }
         return hw;
     }
 
-    private static short[] swap16(byte[] roms) throws IOException {
+    public static short[] swap16(byte[] roms) {
         short[] outw = new short[roms.length / 2];
         try (ByteArrayInputStream bis = new ByteArrayInputStream(roms)) {
             int p = 0;
@@ -152,11 +113,13 @@ public class Roms {
             while (bis.read(a) > 0) {
                 outw[p++] = (short) ((a[1] & 0xff) << 8 | (a[0] & 0xff));
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         return outw;
     }
 
-    private static int[] swap32(byte[] roms) throws IOException {
+    public static int[] swap32(byte[] roms) {
         int[] outw = new int[roms.length / 4];
         byte[] a = new byte[4];
         try (ByteArrayInputStream bis = new ByteArrayInputStream(roms)) {
@@ -164,6 +127,8 @@ public class Roms {
             while (bis.read(a) > 0) {
                 outw[p++] = ((a[3] & 0xff) << 24) | ((a[2] & 0xff) << 16) | ((a[1] & 0xff) << 8) | (a[0] & 0xff);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         return outw;
     }
@@ -204,8 +169,8 @@ public class Roms {
         }
     }
 
-    private byte[] loadRom(String name) throws IOException {
-        try (FileInputStream fis = new FileInputStream(new File(romDir, name))) {
+    private byte[] loadRom(File dir, String name) throws IOException {
+        try (FileInputStream fis = new FileInputStream(new File(dir, name))) {
             return fis.readAllBytes();
         }
     }
@@ -213,11 +178,16 @@ public class Roms {
     /**
      * load numbytes from each rom in turn. all roms must be same size.
      */
-    private byte[] loadRomsAlt(String[] names, int numBytes) throws IOException {
+    private byte[] loadRomsAlt(File dir, String[] names, int numBytes) throws IOException {
         System.out.println("load " + Arrays.toString(names) + " nb " + numBytes);
-        List<File> files = Arrays.asList(names).stream().map(s -> new File(romDir, s)).toList();
-        if (files.stream().anyMatch(f -> !f.isFile())) {
-            throw new RuntimeException("missing files: " + Arrays.toString(names));
+        if (names == null || names.length == 0) {
+            return new byte[0];
+        }
+
+        List<File> files = Arrays.asList(names).stream().map(s -> new File(dir, s)).toList();
+        List<File> missingFiles = files.stream().filter(f -> !f.isFile()).toList();
+        if (missingFiles.size() > 0) {
+            throw new RuntimeException("missing files: " + missingFiles);
         }
 
         int[] fileLengths = files.stream().mapToInt(f -> (int) f.length()).distinct().toArray();

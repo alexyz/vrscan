@@ -5,7 +5,7 @@ import vr.m.*;
 import java.awt.*;
 
 public class Poly {
-    /** Q=1, T=2 */
+    public static final int TYPE_Q = 1, TYPE_T = 2;
     public static int type(int w) {
         return w & 3;
     }

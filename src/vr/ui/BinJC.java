@@ -46,20 +46,26 @@ public class BinJC extends JComponent {
 
     @Override
     protected void paintComponent(Graphics g) {
-        int w = getWidth();
-        int h = getHeight();
-        if (data != null && opt.size > 0) {
-            if (im == null || im.getWidth() != w || im.getHeight() != h) {
-                im = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
-                dirty = true;
+        try {
+            int w = getWidth();
+            int h = getHeight();
+            if (data != null && opt.size > 0) {
+                if (im == null || im.getWidth() != w || im.getHeight() != h) {
+                    im = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
+                    dirty = true;
+                }
+                if (dirty) {
+                    render(im, data, opt);
+                    dirty = false;
+                }
+                g.drawImage(im, 0, 0, null);
+            } else {
+                g.drawString("src/vr", 16, 16);
             }
-            if (dirty) {
-                render(im, data, opt);
-                dirty = false;
-            }
-            g.drawImage(im, 0, 0, null);
-        } else {
-            g.drawString("src/vr", 16, 16);
+        } catch (Exception e) {
+            e.printStackTrace();
+            g.setColor(Color.white);
+            g.drawString(e.toString(), 16, 16);
         }
     }
 

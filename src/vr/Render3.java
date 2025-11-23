@@ -71,24 +71,26 @@ public class Render3 {
 
                 for (int n = 0; n < dl.polys.size(); n++) {
                     Poly p = dl.polys.get(n);
+                    Poly op = n > 0 ? dl.polys.get(n-1) : p;
+
                     P2 p0 = total2.mul(p.s2.toM1()).toP2();
                     P2 p1 = total2.mul(p.s3.toM1()).toP2();
-                    float ord = (p.s2.y + p.s3.y) / 2;
-                    Color col = p.colObj;
 
                     int link = Poly.link(p.word);
                     if (link > 0) {
                         int type = Poly.type(p.word);
-                        if (type == 1) {
+                        float ord = Math.max(Math.max(p.s2.y, p.s3.y), Math.max(op.s2.y, op.s3.y));
+
+                        if (type == Poly.TYPE_Q) {
                             // draw Q
-                            int[] xp = new int[] {p0.x, p1.x, p3.x, p2.x};
-                            int[] yp = new int[] { p0.y, p1.y, p3.y, p2.y };
-                            qts.add(new QT(xp, yp, ord, col));
-                        } else if (type == 2) {
+                            int[] xp = new int[]{p0.x, p1.x, p3.x, p2.x};
+                            int[] yp = new int[]{p0.y, p1.y, p3.y, p2.y};
+                            qts.add(new QT(xp, yp, ord, p.colObj));
+                        } else if (type == Poly.TYPE_T) {
                             // draw T
-                            int[] xp = new int[] {p0.x, p2.x, p3.x };
-                            int[] yp = new int[] { p0.y, p2.y, p3.y };
-                            qts.add(new QT(xp, yp, ord, col));
+                            int[] xp = new int[]{p0.x, p2.x, p3.x};
+                            int[] yp = new int[]{p0.y, p2.y, p3.y};
+                            qts.add(new QT(xp, yp, ord, p.colObj));
                         }
                     }
 
@@ -109,6 +111,8 @@ public class Render3 {
             }
         }
 
+        // the z ordering is basically wrong, so shuffle first to emphasize it
+        Collections.shuffle(qts);
         Collections.sort(qts);
 
         for (QT qt : qts) {

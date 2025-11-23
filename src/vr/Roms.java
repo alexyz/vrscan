@@ -63,7 +63,7 @@ public class Roms {
         }
     }
 
-    public byte[] loadMany(File dir, Names[] names) throws IOException {
+    private byte[] loadMany(File dir, Names[] names) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             for (Names name : names) {
                 bos.write(loadAny(dir, name));
@@ -72,13 +72,17 @@ public class Roms {
         }
     }
 
-    public byte[] load(Game g, Bank rb) throws IOException {
+    public byte[] load(Game g, Bank rb) {
         Map<Bank, byte[]> bytes2 = bytes.computeIfAbsent(g, k -> new TreeMap<>());
         byte[] b = bytes2.get(rb);
         if (b == null) {
             Names[] loads = Games.instance.get(g, rb);
             if (loads != null) {
-                b = loadMany(new File(romDir, g.name()), loads);
+                try {
+                    b = loadMany(new File(romDir, g.name()), loads);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             } else {
                 b = new byte[0];
             }

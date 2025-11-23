@@ -4,7 +4,8 @@ import vr.m.*;
 import vr.ui.ScanJF;
 
 import java.awt.*;
-import java.util.Set;
+import java.util.*;
+import java.util.List;
 
 public class Render {
 
@@ -63,16 +64,18 @@ public class Render {
         Color lightGreen = new Color(128,255,128);
 
 
-        for (float x = -1; x <= 1; x += 0.5f) {
-            for (float z = -1; z <= 1; z += 0.5f) {
-                F3 f = new F3().set(x, 0, z);
-                P2 p1 = wintr2.mul(winsc2.mul(proj2)).mul(f.toM1()).toP2();
-                g.setColor(Color.red);
-                g.setFont(ScanJF.MONO);
-                g.drawOval(p1.x - 2, p1.y - 2, 4, 4);
-                g.drawString(f.toString(), p1.x, p1.y + ScanJF.MONO.getSize());
-            }
-        }
+//        for (float x = -1; x <= 1; x += 0.5f) {
+//            for (float z = -1; z <= 1; z += 0.5f) {
+//                F3 f = new F3().set(x, 0, z);
+//                P2 p1 = wintr2.mul(winsc2.mul(proj2)).mul(f.toM1()).toP2();
+//                g.setColor(Color.red);
+//                g.setFont(ScanJF.MONO);
+//                g.drawOval(p1.x - 2, p1.y - 2, 4, 4);
+//                g.drawString(f.toString(), p1.x, p1.y + ScanJF.MONO.getSize());
+//            }
+//        }
+
+        Map<Integer, List<Integer>> nums = new HashMap<>();
 
         for (DL dl : s.dls) {
             boolean in;
@@ -107,9 +110,10 @@ public class Render {
                     P2 s2p = total2.mul(p.s2.toM1()).toP2();
                     P2 s3p = total2.mul(p.s3.toM1()).toP2();
 
-                    //if ((p.word & 0xff_00_00_00) != 0) {
-                    if ((p.word & 0xff00000) != 0) {
-                        if ((p.word & 0xf) == 1) {
+                    int link = Poly.link(p.word);
+                    if (link > 0) {
+                        int type = Poly.type(p.word);
+                        if (type == Poly.TYPE_Q) {
                             // draw Q
                             g.setColor(lightBlue);
                             g.drawLine(s2p.x, s2p.y, s3p.x, s3p.y);
@@ -119,7 +123,7 @@ public class Render {
                             } else {
                                 System.out.println(String.format("invalid Q offset %x n %d poly %s", dl.offset, n, p));
                             }
-                        } else if ((p.word & 0xf) == 2) {
+                        } else if (type == Poly.TYPE_T) {
                             // draw T
                             g.setColor(lightGreen);
                             if (r2p != null && r3p != null) {
@@ -142,20 +146,21 @@ public class Render {
                     //g.setColor(Color.white);
                     //g.drawOval(s2p.x - 1, s2p.y -1, 2, 2);
                     if (o.dispNum && (o.numFilter.size() == 0 || o.numFilter.contains(n))) {
-                        g.setColor(Color.red);
-                        g.drawString(eq ? n + "-" : n + ":2", s2p.x - 6, s2p.y - 6); // upper
+                        //g.setColor(Color.red);
+                        //g.drawString(eq ? n + "-" : n + ":2", s2p.x - 6, s2p.y - 6); // upper
+                        int k = (s2p.x << 16) | s2p.y;
+                        nums.compute(k, (k1,v1) -> v1 != null ? v1 : new ArrayList<>()).add(n);
                     }
 
                     if (!eq) {
                         //g.setColor(Color.white);
                         //g.drawOval(s3p.x - 1, s3p.y -1, 2, 2);
                         if (o.dispNum && (o.numFilter.size() == 0 || o.numFilter.contains(n))) {
-                            g.setColor(Color.red);
-                            g.drawString(n + ":3", s3p.x + 6, s3p.y + 6); // lower
+                            //g.setColor(Color.red);
+                            //g.drawString("" + n, s3p.x + 6, s3p.y + 6); // lower
                         }
                     }
 
-                    int link = (p.word >> 8) & 3;
                     switch (link) {
                         case 0:
                         case 2:
@@ -167,6 +172,14 @@ public class Render {
                     }
                 }
             }
+        }
+
+        for (Map.Entry<Integer,List<Integer>> e : nums.entrySet()) {
+            int x = (e.getKey() >> 16) & 0xfff;
+            int y = e.getKey() & 0xfff;
+            g.setColor(Color.red);
+            g.drawString(e.getValue().toString(), x, y); // upper
+
         }
 
         g.setFont(ScanJF.MONO);

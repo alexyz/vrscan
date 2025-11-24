@@ -39,9 +39,9 @@ public class Roms {
     }
 
     private final File romDir;
-    private Map<Game, Map<Bank, byte[]>> bytes = new TreeMap<>();
-    private Map<Game, Map<Bank, int[]>> words = new TreeMap<>();
-    private Map<Game, Map<Bank, short[]>> halfWords = new TreeMap<>();
+    private final Map<Game, Map<Bank, byte[]>> bytes = new TreeMap<>();
+    private final Map<Game, Map<Bank, int[]>> words = new TreeMap<>();
+    private final Map<Game, Map<Bank, short[]>> halfWords = new TreeMap<>();
 
     public Roms(File romDir) {
         if (!romDir.isDirectory()) {
@@ -91,7 +91,7 @@ public class Roms {
         return b;
     }
 
-    public int[] loadWords(Game g, Bank bank) throws IOException {
+    public int[] loadWords(Game g, Bank bank) {
         Map<Bank, int[]> words2 = words.computeIfAbsent(g, k -> new TreeMap<>());
         int[] w = words2.get(bank);
         if (w == null) {
@@ -100,7 +100,7 @@ public class Roms {
         return w;
     }
 
-    public short[] loadHalfWords(Game g, Bank bank) throws IOException {
+    public short[] loadHalfWords(Game g, Bank bank) {
         Map<Bank, short[]> words2 = halfWords.computeIfAbsent(g, k -> new TreeMap<>());
         short[] hw = words2.get(bank);
         if (hw == null) {

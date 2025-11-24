@@ -75,7 +75,7 @@ public class Render {
 //            }
 //        }
 
-        Map<Integer, List<Integer>> nums = new HashMap<>();
+        Map<Integer, Set<Integer>> nums = new HashMap<>();
 
         for (DL dl : s.dls) {
             boolean in;
@@ -141,25 +141,29 @@ public class Render {
                         g.drawLine(s2p.x, s2p.y, s3p.x, s3p.y);
                     }
 
-                    boolean eq = s3p.x == s2p.x && s2p.y == s3p.y;
+                    //boolean eq = s3p.x == s2p.x && s2p.y == s3p.y;
 
                     //g.setColor(Color.white);
                     //g.drawOval(s2p.x - 1, s2p.y -1, 2, 2);
                     if (o.dispNum && (o.numFilter.size() == 0 || o.numFilter.contains(n))) {
                         //g.setColor(Color.red);
                         //g.drawString(eq ? n + "-" : n + ":2", s2p.x - 6, s2p.y - 6); // upper
-                        int k = (s2p.x << 16) | s2p.y;
-                        nums.compute(k, (k1,v1) -> v1 != null ? v1 : new ArrayList<>()).add(n);
+                        int s2 = (s2p.x << 16) | s2p.y;
+                        nums.compute(s2, (k1,v1) -> v1 != null ? v1 : new HashSet<>()).add(n);
+                        int s3 = (s3p.x << 16) | s3p.y;
+                        nums.compute(s3, (k1,v1) -> v1 != null ? v1 : new HashSet<>()).add(n);
                     }
 
-                    if (!eq) {
+//                    if (!eq) {
                         //g.setColor(Color.white);
                         //g.drawOval(s3p.x - 1, s3p.y -1, 2, 2);
-                        if (o.dispNum && (o.numFilter.size() == 0 || o.numFilter.contains(n))) {
+//                        if (o.dispNum && (o.numFilter.size() == 0 || o.numFilter.contains(n))) {
                             //g.setColor(Color.red);
                             //g.drawString("" + n, s3p.x + 6, s3p.y + 6); // lower
-                        }
-                    }
+//                            int k2 = (s3p.x << 16) | s3p.y;
+//                            nums.compute(k2, (k1,v1) -> v1 != null ? v1 : new ArrayList<>()).add(n);
+//                        }
+//                    }
 
                     switch (link) {
                         case 0:
@@ -174,7 +178,7 @@ public class Render {
             }
         }
 
-        for (Map.Entry<Integer,List<Integer>> e : nums.entrySet()) {
+        for (Map.Entry<Integer,Set<Integer>> e : nums.entrySet()) {
             int x = (e.getKey() >> 16) & 0xfff;
             int y = e.getKey() & 0xfff;
             g.setColor(Color.red);

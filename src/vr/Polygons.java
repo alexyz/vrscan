@@ -10,28 +10,21 @@ import java.util.List;
 public class Polygons {
     public List<DL> displayLists;
     public List<PA> polyAddrs;
-    public short[] textures, palette;
+    public short[] textures;
+    /**
+     * 15 bit color
+     */
+    public short[] palette;
     public Color[] colors;
 
     public Polygons load(Roms roms, Game g) throws IOException {
-        if (g == Game.vr) {
-            // load PA
-            this.polyAddrs = loadPolyAddrs(roms.loadWords(Game.vr, Bank.mainCpu1));
-            // load TGP
-            this.textures = loadTextures(roms);
-            // load palette
-            this.palette = loadPalette(roms);
-            this.colors = loadColors();
-        } else {
-            this.polyAddrs = Collections.emptyList();
-            this.textures = new short[0];
-            this.palette = new short[0];
-            this.colors = new Color[0];
-        }
+        this.polyAddrs = loadPolyAddrs(roms, g);
+        this.textures = loadTextures(roms, g);
+        this.palette = loadPalette(roms, g);
+        this.colors = loadColors();
 
         // load display lists...
         this.displayLists = loadDisplayLists(roms.loadWords(g, Bank.polygons));
-
 
         // copy pa into dl
         for (DL dl : displayLists) {
@@ -65,36 +58,76 @@ public class Polygons {
         return colors;
     }
 
-    private short[] loadPalette(Roms roms) throws IOException {
-        short[] data = roms.loadHalfWords(Game.vr, Bank.mainCpu1);
-        int p = 0xEC980 / 2;
+    private short[] loadPalette(Roms roms, Game g) throws IOException {
         short[] a = new short[0x400];
-        for (int n = 0; n < a.length; n++) {
-            a[n] = data[p + n];
+        if (g == Game.vr) {
+            short[] data = roms.loadHalfWords(g, Bank.mainCpu1);
+            int p = 0xEC980 / 2;
+            for (int n = 0; n < a.length; n++) {
+                a[n] = data[p + n];
+            }
+        } else if (g == Game.vf) {
+            short[] data = roms.loadHalfWords(g, Bank.mainCpu1);
+            int p = 0xD963E / 2;
+            for (int n = 0; n < a.length; n++) {
+                a[n] = data[p + n];
+            }
+        } else {
+            System.out.println("no palette for " + g);
+            for (int n = 0; n < a.length; n++) {
+                int c = (n * 32) / a.length;
+                a[n] = (short) ((c << 10) | (c << 5) | c);
+            }
         }
         return a;
     }
 
-    private short[] loadTextures(Roms roms) throws IOException {
-        short[] data = roms.loadHalfWords(Game.vr, Bank.mainCpu1);
+    private short[] loadTextures(Roms roms, Game g) {
         short[] a = new short[0x60000];
-        for (int n = 0; n < a.length; n++) {
-            a[n] = data[n];
+        if (g == Game.vr) {
+            short[] data = roms.loadHalfWords(g, Bank.mainCpu1);
+            for (int n = 0; n < a.length; n++) {
+                a[n] = data[n];
+            }
+        } else if (g == Game.vf) {
+            short[] data = roms.loadHalfWords(g, Bank.mainCpu3);
+            for (int n = 0; n < a.length; n++) {
+                a[n] = data[n + (0x300000 / 2)];
+            }
+        } else {
+            System.out.println("no textures for " + g);
+            for (int n = 0; n < a.length; n++) {
+                a[n] = (short) ((n * 0x3ff) / a.length);
+            }
         }
         return a;
     }
 
-    private List<PA> loadPolyAddrs(int[] words) {
-        int s = 0xe0000 / 4, e = 0xec980 / 4;
-
+    private List<PA> loadPolyAddrs(Roms roms, Game g) {
         List<PA> list = new ArrayList<>();
-        for (int n = s; n < e; n += 4) {
-            PA pa = new PA();
-            pa.polyAddr = words[n];
-            pa.texAddr = words[n + 1];
-            pa.extra1 = words[n + 2];
-            pa.extra2 = words[n + 3];
-            list.add(pa);
+
+        if (g == Game.vr) {
+            int[] words = roms.loadWords(g, Bank.mainCpu1);
+            int s = 0xe0000 / 4, e = 0xec980 / 4;
+            for (int n = s; n < e; n += 4) {
+                PA pa = new PA();
+                pa.polyAddr = words[n];
+                pa.texAddr = words[n + 1];
+                pa.extra1 = words[n + 2];
+                pa.extra2 = words[n + 3];
+                list.add(pa);
+            }
+
+        } else if (g == Game.vf) {
+            int[] words = roms.loadWords(g, Bank.mainCpu1);
+            int s = 0xd0000 / 4, e = 0xD9638 / 4;
+            for (int n = s; n < e; n += 3) {
+                PA pa = new PA();
+                pa.extra1 = words[n];
+                pa.texAddr = words[n + 1];
+                pa.polyAddr = words[n + 2];
+                list.add(pa);
+            }
         }
 
         return list;
@@ -150,7 +183,7 @@ public class Polygons {
 
     public static Poly readPara(int[] words, int o) { // todo to Roms
         Poly p = new Poly();
-        p.word = words[o + 0];
+        p.word = words[o];
         readSeg(words, o + 1, p.s1);
         readSeg(words, o + 4, p.s2);
         readSeg(words, o + 7, p.s3);
@@ -199,7 +232,11 @@ public class Polygons {
     @Override
     public String toString() {
         return String.format("%s[dls=%d pas=%d tex=%d pal=%d]",
-                getClass().getSimpleName(), displayLists.size(), polyAddrs.size(), textures.length, palette.length);
+                getClass().getSimpleName(),
+                displayLists.size(),
+                polyAddrs.size(),
+                (textures != null ? textures.length : null),
+                (palette != null ? palette.length : null));
     }
 
 }

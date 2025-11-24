@@ -79,7 +79,8 @@ public class Render3 {
                     int link = Poly.link(p.word);
                     if (link > 0) {
                         int type = Poly.type(p.word);
-                        float ord = Math.max(Math.max(p.s2.y, p.s3.y), Math.max(op.s2.y, op.s3.y));
+                        //float ord = Math.max(Math.max(p.s2.y, p.s3.y), Math.max(op.s2.y, op.s3.y)); // mostly works for vr
+                        float ord = (dl.ordinal << 16) + n; // works for vf dl0, but not for dl1...
 
                         if (type == Poly.TYPE_Q) {
                             // draw Q

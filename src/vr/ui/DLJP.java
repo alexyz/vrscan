@@ -86,5 +86,6 @@ public class DLJP extends JPanel {
         }
         area.setText(sb.toString());
         area.setCaretPosition(0);
+        repaint();
     }
 }

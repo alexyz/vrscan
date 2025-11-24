@@ -5,6 +5,8 @@ import vr.*;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.prefs.Preferences;
 
 // todo a vertical size and a pager and much bigger offset and view to model and swap ...
@@ -12,9 +14,9 @@ import java.util.prefs.Preferences;
 // reuse image if res hasn't changed
 public class BinJF extends JFrame {
 
-    private static Preferences PREFS = Preferences.userNodeForPackage(ScanJF.class);
+    private static final Preferences PREFS = Preferences.userNodeForPackage(ScanJF.class);
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         //File romDir = new File(args[0]);
         //byte[] data = Roms.intsToBytesBe(Roms.swap32(Roms.loadPolygons(romDir)));
 
@@ -67,6 +69,7 @@ public class BinJF extends JFrame {
     private final JComboBox<BinJC.Opt.Format> formatBox = new JComboBox<>(BinJC.Opt.Format.values());
     private final JCheckBox swapBox = new JCheckBox("Swap", true);
     private final BinJC binJc = new BinJC();
+    private final JButton saveButton = new JButton("Save");
     private Roms roms;
 
     public BinJF() {
@@ -81,6 +84,7 @@ public class BinJF extends JFrame {
         dirField.addActionListener(e -> wrapEx(() -> loadRoms()));
         gameBox.addItemListener(e -> wrapEx(() -> setData()));
         bankBox.addItemListener(e -> wrapEx(() -> setData()));
+        saveButton.addActionListener(e -> wrapEx(() -> saveIt()));
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
         top.add(new JLabel("Dir"));
@@ -88,6 +92,7 @@ public class BinJF extends JFrame {
         top.add(new JLabel("Rom"));
         top.add(gameBox);
         top.add(bankBox);
+        top.add(saveButton);
         top.add(new JLabel("Size"));
         top.add(sizeSpin);
         top.add(new JLabel("Offset"));
@@ -105,6 +110,24 @@ public class BinJF extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, ScanJF.wrapStr(e.toString()));
+        }
+    }
+
+    private void saveIt() {
+        Game g = (Game) gameBox.getSelectedItem();
+        Bank b = (Bank) bankBox.getSelectedItem();
+        byte[] a = roms.load(g, b);
+        JFileChooser fc = new JFileChooser();
+        File saveDir = new File(PREFS.get("saveDir", System.getProperty("user.dir")));
+        fc.setSelectedFile(new File(saveDir, g.name() +"." + b.name() + ".bin"));
+        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File f = fc.getSelectedFile();
+            try (FileOutputStream fos = new FileOutputStream(f)) {
+                fos.write(a);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            PREFS.put("saveDir", f.getParentFile().getAbsolutePath());
         }
     }
 

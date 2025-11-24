@@ -9,7 +9,7 @@ public class BinJC extends JComponent {
     public static class Opt {
         public enum Format {
             SB(1), RGBA5551(2), RGB565(2), EX(2);
-            int nb;
+            final int nb;
 
             Format(int nb) {
                 this.nb = nb;

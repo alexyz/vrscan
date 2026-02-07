@@ -139,17 +139,21 @@ public class Polygons {
         int ord = 0;
 
         for (int wp = 0; wp < romWords.length; ) {
-            if (romWords[wp] == 0 || romWords[wp] == 0xffffffff) {
+            int w = romWords[wp];
+            if (w == 0 || w == -1) {
                 newlist = true;
                 wp++;
 
-            } else if (isPrefix(romWords[wp])) {
+            } else if (Poly.isWord(w)) {
                 Poly p = readPara(romWords, wp);
                 if (isDummy(p)) {
                     //System.out.println(String.format("dummy p %x", wp * 4));
                     newlist = true;
 
                 } else {
+                    if (w == 1) {
+                        newlist = true; // netmerc, but doesn't work well
+                    }
                     if (newlist) {
                         lists.add(new DL(ord, wp * 4));
                         newlist = false;
@@ -161,7 +165,7 @@ public class Polygons {
                 wp += 10;
 
             } else {
-                System.out.println(String.format("unknown p %x w %x", wp * 4, romWords[wp]));
+                System.out.println(String.format("unknown offset %x word %x", wp * 4, w));
                 break;
             }
         }
@@ -200,7 +204,9 @@ public class Polygons {
     // 0180 1b02
     //   18 1801
     //   98 1902
-    // 0180 0303 (mask?)
+    //  102 0a01 (swa)
+    //  100 6a01
+    //  100 4a01
 
     // n1 = 0
     // n2 = 0,1 - paint?
@@ -210,24 +216,24 @@ public class Polygons {
     // n6 = link
     // n7 = 0
     // n8 = 1,2 (Q, T)
-    public static boolean isPrefix(int i) { // todo to Roms
-        //int i1 = i & 0xff_00_00_00;
-        int i1 = (i >> 24) & 0xff;
-        if (i1 == 0 || i1 == 1) { // byte 1 is [01]
-            //int i2 = i & 0xf0_00_00;
-            int i2 = (i >> 20) & 0xf;
-            if (i2 == 0 || i2 == 1 || i2 == 8 || i2 == 9) { // lower byte is any
-                int i3 = i & 0xf0_00;
-                if (i3 == 0x10_00 || i3 == 0x30_00 || i3 == 0x50_00 || i3 == 0x70_00) { // upper byte 3 is [1357], lower byte is any
-                    int i4 = i & 0xff;
-                    if (i4 == 1 || i4 == 2) { // byte 4 is [12]
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
+    //public static boolean isPrefix(int i) { // todo to Roms
+//        int n12 = (i >> 24) & 0xff;
+//        if (n12 == 0 || n12 == 1) { // byte 1 is [01]
+//            int n3 = (i >> 20) & 0xf;
+//            if (n3 == 0 || n3 == 1 || n3 == 8 || n3 == 9) {
+//                // n4 is any
+//                int n5 = (i >> 12) & 0xf;
+//                if (n5 == 0x0 || n5 == 0x1 || n5 == 0x3 || n5 == 0x4 | n5 == 0x5 || n5 == 0x6 || n5 == 0x7) {
+//                    // n6 is any
+//                    int n78 = i & 0xff;
+//                    if (n78 == 1 || n78 == 2) { // byte 4 is [12]
+//                        return true;
+//                    }
+//                }
+//            }
+//        }
+//        return false;
+    //}
 
     @Override
     public String toString() {

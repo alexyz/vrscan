@@ -8,7 +8,7 @@ import java.awt.*;
 
 public class PalJP extends JPanel {
 
-    private final JPanel[] panels = new JPanel[1024];
+    private final JComponent[] panels = new JComponent[1024];
     private Polygons p;
 
     public PalJP() {
@@ -16,6 +16,8 @@ public class PalJP extends JPanel {
         Border b = BorderFactory.createLineBorder(Color.black);
         for (int n = 0; n < panels.length; n++) {
             JPanel p = new JPanel(new GridLayout(1,1));
+            JLabel l = new JLabel(Integer.toHexString(n));
+            p.add(l);
             p.setBorder(b);
             panels[n] = p;
             add(p);
@@ -26,7 +28,7 @@ public class PalJP extends JPanel {
         this.p = p;
         for (int n = 0; n < p.colors.length; n++) {
             panels[n].setBackground(p.colors[n]);
-            panels[n].setToolTipText("n=" + n + " col=" + Integer.toHexString(p.palette[n] & 0x7fff));
+            panels[n].setToolTipText(String.format("n=%x col=%x", n, p.palette[n] & 0xffff));
         }
         repaint();
     }

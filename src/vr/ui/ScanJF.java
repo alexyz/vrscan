@@ -59,6 +59,7 @@ public class ScanJF extends JFrame {
     private final SceneJP sceneJp = new SceneJP();
     private final JTabbedPane tabs = new JTabbedPane(JTabbedPane.TOP);
     private final DLJP listsJp = new DLJP();
+    private final DLJP2 listsJp2 = new DLJP2();
     private final PAJP paJp = new PAJP();
     private final PalJP palJp = new PalJP();
     private final JComboBox<Game> gameCombo = new JComboBox<>(Game.values());
@@ -66,6 +67,7 @@ public class ScanJF extends JFrame {
     private final JTextField dirField = new JTextField(32);
     private final JSpinner startSpin = new JSpinner();
     private final JSpinner lenSpin = new JSpinner();
+    private final JLabel dlsLabel = new JLabel();
     private Polygons polys;
     private Roms roms;
 
@@ -76,9 +78,10 @@ public class ScanJF extends JFrame {
         // [romfile] [load] [proj] [trans] [scale]
         tabs.addTab("View", sceneJp);
         tabs.addTab("DL", listsJp);
+        tabs.addTab("DL2", listsJp2);
         tabs.addTab("PA", paJp);
         tabs.addTab("Palette", palJp);
-        sceneCombo.addItemListener(e -> sceneChangeIL());
+        sceneCombo.addItemListener(e -> wrapEx(() -> sceneChange()));
         dirField.setText(PREFS.get("romDir", System.getProperty("user.dir")));
         dirField.addActionListener(e -> wrapEx(() -> initRoms()));
         startSpin.addChangeListener(e -> wrapEx(() -> customScene()));
@@ -97,6 +100,7 @@ public class ScanJF extends JFrame {
         top.add(startSpin);
         top.add(new JLabel("Len"));
         top.add(lenSpin);
+        top.add(dlsLabel);
         add(top, BorderLayout.NORTH);
         add(tabs, BorderLayout.CENTER);
     }
@@ -124,10 +128,12 @@ public class ScanJF extends JFrame {
 
         try {
             polys = new Polygons().load(roms, game);
+            dlsLabel.setText(String.valueOf(polys.displayLists.size()));
             System.out.println("polys=" + polys);
 
             paJp.setPolgons(polys);
             palJp.setPolgons(polys);
+            listsJp2.setPolygons(polys);
 
             startSpin.setModel(new SpinnerNumberModel(0, 0, polys.displayLists.size(), 1));
             lenSpin.setModel(new SpinnerNumberModel(1, 1, polys.displayLists.size(), 1));
@@ -138,7 +144,7 @@ public class ScanJF extends JFrame {
             }
             sceneItems.add(new SCI(null));
             sceneCombo.setModel(new DefaultComboBoxModel<SCI>(sceneItems));
-            sceneChangeIL();
+            sceneChange();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -166,11 +172,11 @@ public class ScanJF extends JFrame {
         System.out.println("set scene " + s);
         sceneJp.setScene(s);
         listsJp.setScene(s);
+        listsJp2.setScene(s);
         repaint();
     }
 
-    private void sceneChangeIL() {
-//        try {
+    private void sceneChange() {
         SCI sci = (SCI) sceneCombo.getSelectedItem();
         System.out.println("scene change " + sci.s);
         if (sci.s != null) {
@@ -184,10 +190,6 @@ public class ScanJF extends JFrame {
             startSpin.setEnabled(true);
             lenSpin.setEnabled(true);
         }
-//        } catch (Exception e2) {
-//            e2.printStackTrace();
-//            JOptionPane.showMessageDialog(this, wrap(e2.toString()));
-//        }
     }
 }
 

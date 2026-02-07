@@ -13,19 +13,24 @@ public class Render3 {
 
     private static class QT implements Comparable<QT> {
         public final int[] xp, yp;
-        public final float z;
+        public final float z1, z2;
         public final Color col;
 
-        private QT(int[] xp, int[] yp, float z, Color col) {
+        private QT(int[] xp, int[] yp, float z1, float z2, Color col) {
             this.xp = xp;
             this.yp = yp;
-            this.z = z;
+            this.z1 = z1;
+            this.z2 = z2;
             this.col = col;
         }
 
         @Override
         public int compareTo(QT o) {
-            return (int) Math.signum(z - o.z);
+            int c = (int) Math.signum(z1 - o.z1);
+            if (c == 0) {
+                c = (int) Math.signum(z2 - o.z2);
+            }
+            return c;
         }
     }
 
@@ -79,19 +84,19 @@ public class Render3 {
                     int link = Poly.link(p.word);
                     if (link > 0) {
                         int type = Poly.type(p.word);
-                        //float ord = Math.max(Math.max(p.s2.y, p.s3.y), Math.max(op.s2.y, op.s3.y)); // mostly works for vr
-                        float ord = (dl.ordinal << 16) + n; // works for vf dl0, but not for dl1...
+                        float ord1 = Math.max(Math.max(p.s2.y, p.s3.y), Math.max(op.s2.y, op.s3.y)); // mostly works for vr
+                        float ord2 = (dl.ordinal << 16) + n; // works for vf dl0, but not for dl1...
 
                         if (type == Poly.TYPE_Q) {
                             // draw Q
                             int[] xp = new int[]{p0.x, p1.x, p3.x, p2.x};
                             int[] yp = new int[]{p0.y, p1.y, p3.y, p2.y};
-                            qts.add(new QT(xp, yp, ord, p.colObj));
+                            qts.add(new QT(xp, yp, ord1, ord2, p.colObj));
                         } else if (type == Poly.TYPE_T) {
                             // draw T
                             int[] xp = new int[]{p0.x, p2.x, p3.x};
                             int[] yp = new int[]{p0.y, p2.y, p3.y};
-                            qts.add(new QT(xp, yp, ord, p.colObj));
+                            qts.add(new QT(xp, yp, ord1, ord2, p.colObj));
                         }
                     }
 

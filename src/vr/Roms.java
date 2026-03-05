@@ -50,43 +50,43 @@ public class Roms {
         this.romDir = romDir;
     }
 
-    private byte[] loadAny(File dir, Names load) throws IOException {
+    private byte[] loadAny(File dir, Load load) throws IOException {
         switch (load.type) {
             case load:
-                return loadRom(dir, load.names[0]);
+                return loadRom(dir, load.fileNames[0]);
             case loadAltByte:
-                return loadRomsAlt(dir, load.names, 1);
+                return loadRomsAlt(dir, load.fileNames, 1);
             case loadAltWord:
-                return loadRomsAlt(dir, load.names, 2);
+                return loadRomsAlt(dir, load.fileNames, 2);
             default:
                 throw new RuntimeException();
         }
     }
 
-    private byte[] loadMany(File dir, Names[] names) throws IOException {
+    private byte[] loadMany(File dir, Load[] names) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            for (Names name : names) {
+            for (Load name : names) {
                 bos.write(loadAny(dir, name));
             }
             return bos.toByteArray();
         }
     }
 
-    public byte[] load(Game g, Bank rb) {
-        Map<Bank, byte[]> bytes2 = bytes.computeIfAbsent(g, k -> new TreeMap<>());
-        byte[] b = bytes2.get(rb);
+    public byte[] load(Game game, Bank bank) {
+        Map<Bank, byte[]> bytes2 = bytes.computeIfAbsent(game, k -> new TreeMap<>());
+        byte[] b = bytes2.get(bank);
         if (b == null) {
-            Names[] loads = Games.instance.get(g, rb);
+            Load[] loads = Games.instance.get(game, bank);
             if (loads != null) {
                 try {
-                    b = loadMany(new File(romDir, g.name()), loads);
+                    b = loadMany(new File(romDir, game.name()), loads);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             } else {
                 b = new byte[0];
             }
-            bytes2.put(rb, b);
+            bytes2.put(bank, b);
         }
         return b;
     }
@@ -100,11 +100,11 @@ public class Roms {
         return w;
     }
 
-    public short[] loadHalfWords(Game g, Bank bank) {
-        Map<Bank, short[]> words2 = halfWords.computeIfAbsent(g, k -> new TreeMap<>());
+    public short[] loadHalfWords(Game game, Bank bank) {
+        Map<Bank, short[]> words2 = halfWords.computeIfAbsent(game, k -> new TreeMap<>());
         short[] hw = words2.get(bank);
         if (hw == null) {
-            words2.put(bank, hw = swap16(load(g, bank)));
+            words2.put(bank, hw = swap16(load(game, bank)));
         }
         return hw;
     }

@@ -63,8 +63,8 @@ public class Render3 {
         for (DL dl : s.dls) {
             boolean in;
             {
-                P2 p1 = total2.mul(dl.min().toM1()).toP2();
-                P2 p2 = total2.mul(dl.max().toM1()).toP2();
+                P2 p1 = total2.mul(dl.min().toHc()).toP2();
+                P2 p2 = total2.mul(dl.max().toHc()).toP2();
                 P2 min = p1.min(p2);
                 P2 max = p1.max(p2);
                 in = min.x < w && min.y < h && max.x >= 0 && max.y >= 0;
@@ -78,13 +78,13 @@ public class Render3 {
                     Poly p = dl.polys.get(n);
                     Poly op = n > 0 ? dl.polys.get(n-1) : p;
 
-                    P2 p0 = total2.mul(p.s2.toM1()).toP2();
-                    P2 p1 = total2.mul(p.s3.toM1()).toP2();
+                    P2 p0 = total2.mul(p.s2.toHc()).toP2();
+                    P2 p1 = total2.mul(p.s3.toHc()).toP2();
 
                     int link = Poly.link(p.word);
                     if (link > 0) {
                         int type = Poly.type(p.word);
-                        float ord1 = Math.max(Math.max(p.s2.y, p.s3.y), Math.max(op.s2.y, op.s3.y)); // mostly works for vr
+                        float ord1 = Math.max(Math.max(p.s2.y(), p.s3.y()), Math.max(op.s2.y(), op.s3.y())); // mostly works for vr
                         float ord2 = (dl.ordinal << 16) + n; // works for vf dl0, but not for dl1...
 
                         if (type == Poly.TYPE_Q) {

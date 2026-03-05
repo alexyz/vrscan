@@ -22,7 +22,7 @@
                 <directory>resources</directory>
             </resource>
         </resources>
-        <testSourceDirectory>testsrc</testSourceDirectory>
+        <testSourceDirectory>test</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

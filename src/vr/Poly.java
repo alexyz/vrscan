@@ -13,6 +13,7 @@ public class Poly {
      * U = unknown
      */
     public static int W_MASK = 0b0000_0001_1111_1110_0111_1111_0000_0011;
+
     public static boolean isWord(int w) {
         return (w & W_MASK) != 0 && (w & ~W_MASK) == 0;
     }
@@ -47,7 +48,6 @@ public class Poly {
         return (w >> 17) & 15;
     }
 
-
     public static int red(int col) {
         return (col & 0x1f) * 8;
     }
@@ -60,10 +60,23 @@ public class Poly {
         return ((col >> 10) & 0x1f) * 8;
     }
 
+    public static Poly readPara(int[] words, int o) {
+        Poly p = new Poly();
+        p.word = words[o];
+        readSeg(words, o + 1, p.s1);
+        readSeg(words, o + 4, p.s2);
+        readSeg(words, o + 7, p.s3);
+        return p;
+    }
+
+    private static void readSeg(int[] w, int o, M1 f) {
+        f.setHc(Float.intBitsToFloat(w[o]), Float.intBitsToFloat(w[o + 1]), Float.intBitsToFloat(w[o + 2]));
+    }
+
     public int word;
     public int texAddr, tex, col;
     public Color colObj;
-    public final F3 s1 = new F3(), s2 = new F3(), s3 = new F3();
+    public final M1 s1 = new M1(), s2 = new M1(), s3 = new M1();
 
     @Override
     public boolean equals(Object o) {

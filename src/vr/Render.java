@@ -5,7 +5,6 @@ import vr.ui.ScanJF;
 
 import java.awt.*;
 import java.util.*;
-import java.util.List;
 
 public class Render {
 
@@ -85,8 +84,8 @@ public class Render {
                 // trans  = windows size / 2 (to move origin to TL)
                 // then draw each point if it's (the PL) within the g ctx
 
-                P2 p1 = total2.mul(dl.min().toM1()).toP2();
-                P2 p2 = total2.mul(dl.max().toM1()).toP2();
+                P2 p1 = total2.mul(dl.min().toHc()).toP2();
+                P2 p2 = total2.mul(dl.max().toHc()).toP2();
                 //System.out.println("p1=" + p1 + " p2=" + p2);
                 P2 min = p1.min(p2);
                 P2 max = p1.max(p2);
@@ -107,8 +106,8 @@ public class Render {
 
                 for (int n = 0; n < dl.polys.size(); n++) {
                     Poly p = dl.polys.get(n);
-                    P2 s2p = total2.mul(p.s2.toM1()).toP2();
-                    P2 s3p = total2.mul(p.s3.toM1()).toP2();
+                    P2 s2p = total2.mul(p.s2.toHc()).toP2();
+                    P2 s3p = total2.mul(p.s3.toHc()).toP2();
 
                     int link = Poly.link(p.word);
                     if (link > 0) {

@@ -1,7 +1,5 @@
 package vr;
 
-import vr.m.*;
-
 import java.awt.*;
 import java.io.IOException;
 import java.util.*;
@@ -58,20 +56,18 @@ public class Polygons {
         return colors;
     }
 
-    private short[] loadPalette(Roms roms, Game g) throws IOException {
+    private short[] loadPalette(Roms roms, Game g) {
         short[] a = new short[0x400];
         if (g == Game.vr) {
             short[] data = roms.loadHalfWords(g, Bank.mainCpu1);
             int p = 0xEC980 / 2;
-            for (int n = 0; n < a.length; n++) {
-                a[n] = data[p + n];
-            }
+            System.arraycopy(data, p, a, 0, a.length);
+
         } else if (g == Game.vf) {
             short[] data = roms.loadHalfWords(g, Bank.mainCpu1);
             int p = 0xD963E / 2;
-            for (int n = 0; n < a.length; n++) {
-                a[n] = data[p + n];
-            }
+            System.arraycopy(data, p, a, 0, a.length);
+
         } else {
             System.out.println("no palette for " + g);
             for (int n = 0; n < a.length; n++) {
@@ -86,14 +82,12 @@ public class Polygons {
         short[] a = new short[0x60000];
         if (g == Game.vr) {
             short[] data = roms.loadHalfWords(g, Bank.mainCpu1);
-            for (int n = 0; n < a.length; n++) {
-                a[n] = data[n];
-            }
+            System.arraycopy(data, 0, a, 0, a.length);
+
         } else if (g == Game.vf) {
             short[] data = roms.loadHalfWords(g, Bank.mainCpu3);
-            for (int n = 0; n < a.length; n++) {
-                a[n] = data[n + (0x300000 / 2)];
-            }
+            System.arraycopy(data, (0x300000 / 2), a, 0, a.length);
+
         } else {
             System.out.println("no textures for " + g);
             for (int n = 0; n < a.length; n++) {
@@ -145,7 +139,7 @@ public class Polygons {
                 wp++;
 
             } else if (Poly.isWord(w)) {
-                Poly p = readPara(romWords, wp);
+                Poly p = Poly.readPara(romWords, wp);
                 if (isDummy(p)) {
                     //System.out.println(String.format("dummy p %x", wp * 4));
                     newlist = true;
@@ -172,68 +166,18 @@ public class Polygons {
         return lists;
     }
 
-    private static boolean isDummy(Poly p) {
+    public static boolean isDummy(Poly p) {
         // 00021401 00000000 00000000 00000000 3F800000 C0000000 3F800000 3F800000 C0000000 BF800000
         // 00021401 00000000 3F800000 00000000 BF800000 C0000000 3F800000 BF800000 C0000000 BF800000
         if (p.word == 0x00021401) {
-            if (p.s1.equals3(0, 0, 0) && p.s2.equals3(1, -2, 1) && p.s3.equals3(1, -2, -1)) {
+            if (p.s1.equalsHc(0, 0, 0) && p.s2.equalsHc(1, -2, 1) && p.s3.equalsHc(1, -2, -1)) {
                 return true;
-            } else if (p.s1.equals3(0, 1, 0) && p.s2.equals3(-1, -2, 1) && p.s3.equals3(-1, -2, -1)) {
+            } else if (p.s1.equalsHc(0, 1, 0) && p.s2.equalsHc(-1, -2, 1) && p.s3.equalsHc(-1, -2, -1)) {
                 return true;
             }
         }
         return false;
     }
-
-    public static Poly readPara(int[] words, int o) { // todo to Roms
-        Poly p = new Poly();
-        p.word = words[o];
-        readSeg(words, o + 1, p.s1);
-        readSeg(words, o + 4, p.s2);
-        readSeg(words, o + 7, p.s3);
-        return p;
-    }
-
-    public static void readSeg(int[] w, int o, F3 f) { // todo to Roms
-        f.x = Float.intBitsToFloat(w[o]);
-        f.y = Float.intBitsToFloat(w[o + 1]);
-        f.z = Float.intBitsToFloat(w[o + 2]);
-    }
-
-    //  void model1_state::push_object(uint32_t tex_adr, uint32_t poly_adr, uint32_t size)
-    // 0180 1b02
-    //   18 1801
-    //   98 1902
-    //  102 0a01 (swa)
-    //  100 6a01
-    //  100 4a01
-
-    // n1 = 0
-    // n2 = 0,1 - paint?
-    // n3 = 0,8 - paint?
-    // n4 = 0 - lightmode?
-    // n5 = 1 - tex adr, moire, backface cull?
-    // n6 = link
-    // n7 = 0
-    // n8 = 1,2 (Q, T)
-    //public static boolean isPrefix(int i) { // todo to Roms
-//        int n12 = (i >> 24) & 0xff;
-//        if (n12 == 0 || n12 == 1) { // byte 1 is [01]
-//            int n3 = (i >> 20) & 0xf;
-//            if (n3 == 0 || n3 == 1 || n3 == 8 || n3 == 9) {
-//                // n4 is any
-//                int n5 = (i >> 12) & 0xf;
-//                if (n5 == 0x0 || n5 == 0x1 || n5 == 0x3 || n5 == 0x4 | n5 == 0x5 || n5 == 0x6 || n5 == 0x7) {
-//                    // n6 is any
-//                    int n78 = i & 0xff;
-//                    if (n78 == 1 || n78 == 2) { // byte 4 is [12]
-//                        return true;
-//                    }
-//                }
-//            }
-//        }
-//        return false;
-    //}
 
     @Override
     public String toString() {

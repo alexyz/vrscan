@@ -5,54 +5,24 @@ package vr.m;
  */
 public class M1 extends M {
 
-    public static M1 hc(float x, float y, float z) {
-        M1 m = new M1();
-        m.r0 = x;
-        m.r1 = y;
-        m.r2 = z;
-        m.r3 = 1;
-        return m;
+    public M1() {
+        //
     }
 
-    public float r0, r1, r2, r3;
+    public final float[] a = new float[4];
 
     @Override
-    public M set(int r, int c, float v) {
-        if (r >= 0 && r < 4 && c == 0) {
-            switch (r) {
-                case 0:
-                    r0 = v;
-                    break;
-                case 1:
-                    r1 = v;
-                    break;
-                case 2:
-                    r2 = v;
-                    break;
-                case 3:
-                    r3 = v;
-                    break;
-            }
-            return this;
+    public int index(int r, int c) {
+        if (c == 0) {
+            return r;
+        } else {
+            return -1;
         }
-        throw new RuntimeException();
     }
 
     @Override
-    public float get(int r, int c) {
-        if (r >= 0 && r < 4 && c == 0) {
-            switch (r) {
-                case 0:
-                    return r0;
-                case 1:
-                    return r1;
-                case 2:
-                    return r2;
-                case 3:
-                    return r3;
-            }
-        }
-        throw new RuntimeException();
+    public float[] values() {
+        return a;
     }
 
     @Override
@@ -65,9 +35,110 @@ public class M1 extends M {
         return 4;
     }
 
+    public M1 sub(M1 bm) {
+        return sub(bm, new M1());
+    }
+
+    public M1 sub(M1 bm, M1 cm) {
+        float[] b = bm.a;
+        float[] c = cm.a;
+        for (int i = 0; i < 4; i++) {
+            c[i] = a[i] - b[i];
+        }
+        return cm;
+    }
+
+//    public boolean lte(M1 bm) {
+//        float[] b = bm.a;
+//        for (int i = 0; i < 4; i++) {
+//            if (a[i] > b[i]) {
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
+//
+//    public M1 min(M1 bm) {
+//        if (lte(bm)) {
+//            return this;
+//        } else if (bm.lte(this)) {
+//            return bm;
+//        } else {
+//            M1 cm = new M1();
+//            for (int i = 0; i < 4; i++) {
+//                cm.a[i] = Math.min(a[i], bm.a[i]);
+//            }
+//            return cm;
+//        }
+//    }
+
+    public M1 setMin(M1 om1) {
+        for (int i = 0; i < 4; i++) {
+            if (om1.a[i] < a[i]) {
+                a[i] = om1.a[i];
+            }
+        }
+        return this;
+    }
+
+    public M1 setMax(M1 om1) {
+        for (int i = 0; i < 4; i++) {
+            if (om1.a[i] > a[i]) {
+                a[i] = om1.a[i];
+            }
+        }
+        return this;
+    }
+
     @Override
     public M mul(M m) {
         throw new RuntimeException();
+    }
+
+    /** F3 with maximum values */
+    public M1 setMaxHc() {
+        return setHc(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
+    }
+
+    /** F3 with minimum values */
+    public M1 setMinHc() {
+        return setHc(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
+    }
+
+    public M1 setHc(float x, float y, float z) {
+        a[0] = x;
+        a[1] = y;
+        a[2] = z;
+        a[3] = 1;
+        return this;
+    }
+
+    public boolean equalsHc(float x, float y, float z) {
+        if (a[3] == 1) {
+            return x() == x && y() == y && z() == z;
+        } else {
+            throw new RuntimeException();
+        }
+    }
+
+    public M1 toHc() {
+        if (a[3] == 1) {
+            return this;
+        } else {
+            throw new RuntimeException();
+        }
+    }
+
+    public float x() {
+        return a[0];
+    }
+
+    public float y() {
+        return a[1];
+    }
+
+    public float z() {
+        return a[2];
     }
 
     public P2 toP2() {
@@ -75,9 +146,9 @@ public class M1 extends M {
     }
 
     public P2 toP2(P2 out) {
-        if (Double.isFinite(r0) && Double.isFinite(r1)) {
-            out.x = Math.round(r0);
-            out.y = Math.round(r1);
+        float x = x(), y = y();
+        if (Double.isFinite(x) && Double.isFinite(y)) {
+            out.set(Math.round(x), Math.round(y));
             return out;
         } else {
             throw new RuntimeException();

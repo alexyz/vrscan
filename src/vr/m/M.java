@@ -1,13 +1,11 @@
 package vr.m;
 
+import java.util.Arrays;
+
 /**
  * abstract matrix
  */
 public abstract class M {
-
-    public abstract M set(int r, int c, float v);
-
-    public abstract float get(int r, int c);
 
     public abstract int nc();
 
@@ -15,36 +13,31 @@ public abstract class M {
 
     public abstract M mul(M m);
 
+    public abstract int index(int r, int c);
+
     public P2 toP2() { throw new RuntimeException(); }
 
-    public M setAll(float... v) {
-        if (v.length == nr() * nc()) {
-            for (int r = 0; r < nr(); r++) {
-                for (int c = 0; c < nc(); c++) {
-                    set(r, c, v[r * nc() + c]);
-                }
-            }
-        } else {
-            throw new RuntimeException();
-        }
+    public abstract float[] values();
+
+    public M set(int r, int c, float v) {
+        values()[index(r, c)] = v;
         return this;
     }
 
-    public boolean equalValue(M m) {
-        if (nc() == m.nc() && nr() == m.nr()) {
-            for (int r = 0; r < nr(); r++) {
-                for (int c = 0; c < nc(); c++) {
-                    if (get(r, c) != m.get(r, c)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
+    public float get(int r, int c) {
+        return values()[index(r, c)];
+    }
+
+    public M setAll(float... v) {
+        if (v.length == values().length) {
+            System.arraycopy(v, 0, values(), 0, v.length);
+            return this;
         } else {
-            return false;
+            throw new RuntimeException();
         }
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("{");
         for (int r = 0; r < nr(); r++) {
@@ -56,5 +49,15 @@ public abstract class M {
         }
         sb.append("}");
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof M m && Arrays.equals(values(), m.values());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(values());
     }
 }

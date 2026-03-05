@@ -12,7 +12,7 @@ public class DL {
     private Stats stats;
 
     public static class Stats {
-        public final F3 min = new F3().setMax(), max = new F3().setMin();
+        public final M1 min = new M1().setMaxHc(), max = new M1().setMinHc();
     }
 
     public DL(int ordinal, int offset) {
@@ -25,21 +25,19 @@ public class DL {
             Stats s = new Stats();
             for (int n = 0; n < polys.size(); n++) {
                 Poly p = polys.get(n);
-                for (int d = 0; d < 3; d++) {
-                    s.min.set(d, Math.min(Math.min(s.min.get(d), p.s2.get(d)), p.s3.get(d)));
-                    s.max.set(d, Math.max(Math.max(s.max.get(d), p.s2.get(d)), p.s3.get(d)));
-                }
+                s.min.setMin(p.s2).setMin(p.s3);
+                s.max.setMax(p.s2).setMax(p.s3);
             }
             this.stats = s;
         }
         return stats;
     }
 
-    public F3 min() {
+    public M1 min() {
         return stats().min;
     }
 
-    public F3 max() {
+    public M1 max() {
         return stats().max;
     }
 

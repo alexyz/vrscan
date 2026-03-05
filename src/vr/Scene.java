@@ -7,7 +7,7 @@ import java.util.List;
 public class Scene {
 
     public static class Stats {
-        public final F3 min = new F3().setMax(), max = new F3().setMin();
+        public final M1 min = new M1().setMaxHc(), max = new M1().setMinHc();
         public int minpos, maxpos;
     }
 
@@ -24,10 +24,8 @@ public class Scene {
             Stats s = new Stats();
             for (int n = 0; n < dls.size(); n++) {
                 DL p = dls.get(n);
-                for (int d = 0; d < 3; d++) {
-                    s.min.set(d, Math.min(s.min.get(d), p.min().get(d)));
-                    s.max.set(d, Math.max(s.max.get(d), p.max().get(d)));
-                }
+                s.min.setMin(p.min());
+                s.max.setMax(p.max());
             }
             {
                 int min = Integer.MAX_VALUE;
@@ -55,20 +53,18 @@ public class Scene {
 
     /** scale so point is within [0,1]^3 preserving aspect */
     public M unitSquare2() {
-        float xd = max().x - min().x;
-        float yd = max().y - min().y;
-        float zd = max().z - min().z;
-        float max = Math.max(xd, Math.max(yd, zd));
+        M1 d = dim();
+        float max = Math.max(d.x(), Math.max(d.y(), d.z()));
         return M4.scale(1 / max, 1 / max, 1 / max);
     }
 
     /** translate so min point is 0 */
     public M zeroBase2() {
-        return M4.trans(-min().x, -min().y, -min().z);
+        return M4.trans(-min().x(), -min().y(), -min().z());
     }
 
-    public F3 dim() {
-        return new F3().set(max().x - min().x, max().y - min().y, max().z - min().z);
+    public M1 dim() {
+        return max().sub(min());
     }
 
     public int minPos() {
@@ -79,11 +75,11 @@ public class Scene {
         return tStats().maxpos;
     }
 
-    public F3 min() {
+    public M1 min() {
         return tStats().min;
     }
 
-    public F3 max() {
+    public M1 max() {
         return tStats().max;
     }
 

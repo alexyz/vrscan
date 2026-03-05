@@ -6,20 +6,20 @@ public class Games {
 
     public static final Games instance = new Games();
 
-    private static Names load16Byte(String n1, String n2) {
-        return new Names(Load.loadAltByte, new String[]{n1, n2});
+    private static Load load16Byte(String n1, String n2) {
+        return new Load(LoadType.loadAltByte, new String[]{n1, n2});
     }
 
-    private static Names load32Word(String n1, String n2) {
-        return new Names(Load.loadAltWord, new String[]{n1, n2});
+    private static Load load32Word(String n1, String n2) {
+        return new Load(LoadType.loadAltWord, new String[]{n1, n2});
     }
 
-    private static Names load32Byte(String n1, String n2, String n3, String n4) {
-        return new Names(Load.loadAltByte, new String[]{n1, n2, n3, n4});
+    private static Load load32Byte(String n1, String n2, String n3, String n4) {
+        return new Load(LoadType.loadAltByte, new String[]{n1, n2, n3, n4});
     }
 
-    private static Names load(String n) {
-        return new Names(Load.load, new String[]{n});
+    private static Load load(String n) {
+        return new Load(LoadType.load, new String[]{n});
     }
 
     private Games() {
@@ -86,13 +86,13 @@ public class Games {
                 load32Word("mpr-18132.ic30", "mpr-18133.ic31"));
     }
 
-    private final Map<Game, Map<Bank, Names[]>> games = new TreeMap<>();
+    private final Map<Game, Map<Bank, Load[]>> games = new TreeMap<>();
 
-    private void add(Game g, Bank b, Names... l) {
+    private void add(Game g, Bank b, Load... l) {
         games.compute(g, (k1, v1) -> v1 != null ? v1 : new TreeMap<>()).put(b, l);
     }
 
-    public Names[] get(Game g, Bank b) {
+    public Load[] get(Game g, Bank b) {
         return games.get(g).get(b);
     }
 

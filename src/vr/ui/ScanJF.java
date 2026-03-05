@@ -6,7 +6,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 import java.util.prefs.Preferences;
@@ -138,10 +137,7 @@ public class ScanJF extends JFrame {
             startSpin.setModel(new SpinnerNumberModel(0, 0, polys.displayLists.size(), 1));
             lenSpin.setModel(new SpinnerNumberModel(1, 1, polys.displayLists.size(), 1));
             Vector<SCI> sceneItems = new Vector<>();
-            if (game == Game.vr) {
-                World world = new World(polys);
-                Arrays.asList(world.bf(), world.ap(), world.bb(), world.p()).stream().forEach(s -> sceneItems.add(new SCI(s)));
-            }
+            Scenes.scenes(game, polys).stream().forEach(s -> sceneItems.add(new SCI(s)));
             sceneItems.add(new SCI(null));
             sceneCombo.setModel(new DefaultComboBoxModel<SCI>(sceneItems));
             sceneChange();

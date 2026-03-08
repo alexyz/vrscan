@@ -1,10 +1,12 @@
 package vr;
 
 import java.awt.*;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
+/**
+ * https://github.com/alexyz/mame/pull/1/changes
+ */
 public class Polygons {
     public List<DL> displayLists;
     public List<PA> polyAddrs;
@@ -15,11 +17,11 @@ public class Polygons {
     public short[] palette;
     public Color[] colors;
 
-    public Polygons load(Roms roms, Game g) throws IOException {
-        this.polyAddrs = loadPolyAddrs(roms, g);
+    public Polygons load(Roms roms, Game g) {
+        this.polyAddrs = loadPolyAddresses(roms, g);
         this.textures = loadTextures(roms, g);
         this.palette = loadPalette(roms, g);
-        this.colors = loadColors();
+        this.colors = initColors();
 
         // load display lists...
         this.displayLists = loadDisplayLists(roms.loadWords(g, Bank.polygons));
@@ -47,7 +49,7 @@ public class Polygons {
         return this;
     }
 
-    private Color[] loadColors() {
+    private Color[] initColors() {
         Color[] colors = new Color[palette.length];
         for (int n = 0; n < palette.length; n++) {
             int c = palette[n] & 0xffff;
@@ -97,12 +99,17 @@ public class Polygons {
         return a;
     }
 
-    private List<PA> loadPolyAddrs(Roms roms, Game g) {
+    /**
+     * <p>a big array somewhere in rom that lists every polygon address with its texture.</p>
+     * <p>these are the arguments to <i>void model1_state::push_object(uint32_t tex_adr, uint32_t poly_adr, uint32_t size)</i></p>
+     * <p>mame invokes this from the render list which is output by the game.</p>
+     */
+    private List<PA> loadPolyAddresses(Roms roms, Game g) {
         List<PA> list = new ArrayList<>();
 
         if (g == Game.vr) {
             int[] words = roms.loadWords(g, Bank.mainCpu1);
-            int s = 0xe0000 / 4, e = 0xec980 / 4;
+            int s = 0xe0000 / 4, e = 0xec980 / 4; // convert byte address to word address
             for (int n = s; n < e; n += 4) {
                 PA pa = new PA();
                 pa.polyAddr = words[n];
@@ -127,6 +134,9 @@ public class Polygons {
         return list;
     }
 
+    /**
+     * look through the polygon roms to find things that look like polygon data (repeated 10 word structure) grouped into display lists.
+     */
     private List<DL> loadDisplayLists(int[] romWords) {
         List<DL> lists = new ArrayList<>();
         boolean newlist = true;

@@ -1,5 +1,6 @@
 package vr;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -18,9 +19,19 @@ public class Scenes {
         switch (g) {
             case Game.vr:
                 return Arrays.asList(bf(p), ap(p), bb(p), pod(p));
+            case Game.vf:
+                return vf(p);
             default:
                 return Collections.emptyList();
         }
+    }
+
+    public static List<Scene> vf(Polygons p) {
+        List<Scene> l = new ArrayList<>();
+        for (int[] i : new int[][]{{0, 2}, {2, 2}, {4, 2}, {6, 3}, {9, 2}, {11, 3}, {14, 3}, {17, 3}, {2952, 4}, {2956, 2}, {2958, 1}}) {
+            l.add(new Scene(p.displayLists.subList(i[0], i[0] + i[1])));
+        }
+        return l;
     }
 
     public static Scene bf(Polygons p) {

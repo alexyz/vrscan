@@ -19,6 +19,11 @@ public class Scene {
         this.position = position;
     }
 
+    public Scene(List<DL> dls) {
+        this.position = dls.get(0).offset;
+        this.dls.addAll(dls);
+    }
+
     private Stats tStats() {
         if (stats == null) {
             Stats s = new Stats();

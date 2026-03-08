@@ -8,12 +8,11 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class SceneJC extends JComponent {
     private final P2 tx = new P2();
     private final P2 temptx = new P2();
+    private float rx, ry, rz, tempRx, tempRy, tempRz;
 
     private Scene scene;
     private float zoom = 1;
@@ -41,9 +40,11 @@ public class SceneJC extends JComponent {
         int h = getHeight();
         g.setColor(Color.black);
         g.fillRect(0, 0, w, h);
-//        g.setColor(Color.white);
-//        g.drawString("c=" + r + " w=" + w + " h=" + h, 12, 48);
-//        g.drawString("tx=" + tx + " temptx=" + temptx + " zf=" + zoom, 12, 60);
+        g.setColor(Color.white);
+        g.drawString("w=" + w + " h=" + h, 12, 48);
+        g.drawString("tx=" + tx + " temptx=" + temptx + " zf=" + zoom, 12, 60);
+        g.drawString(String.format("r=%.2f,%.2f,%.2f tr=%.2f,%.2f,%.2f", rx, ry, rz, tempRx, tempRy, tempRz), 12, 72);
+
         if (scene != null && opts != null) {
 //            Render.Opts o = new Render.Opts();
 //            o.trans = tx.add(temptx);
@@ -56,10 +57,25 @@ public class SceneJC extends JComponent {
 //            o.dlFilter = dlFilter;
             opts.trans = tx.add(temptx);
             opts.scale = zoom;
-            switch (opts.render) {
-                case R1: Render.drawImage2(scene, (Graphics2D) g, opts); break;
-                case R3: Render3.drawImage2(scene, (Graphics2D) g, opts); break;
-                default: throw new RuntimeException();
+            opts.xRot = rx + tempRx;
+            opts.yRot = ry + tempRy;
+            opts.zRot = rz + tempRz;
+
+            try {
+                switch (opts.render) {
+                    case R1:
+                        Render.drawImage2(scene, (Graphics2D) g, opts);
+                        break;
+                    case R3:
+                        Render3.drawImage2(scene, (Graphics2D) g, opts);
+                        break;
+                    default:
+                        throw new RuntimeException();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                g.setColor(Color.white);
+                g.drawString(e.toString(), 16,16);
             }
             //Render.drawImage2(scene, (Graphics2D) g, o);
             //Render2.drawImage2(scene, (Graphics2D) g, o);
@@ -72,54 +88,52 @@ public class SceneJC extends JComponent {
         repaint();
     }
 
-//    public void setNumbers(boolean num) {
-//        this.num = num;
-//        repaint();
-//    }
-//
-//    public void setNumberFilter(Set<Integer> set) {
-//        numFilter.clear();
-//        numFilter.addAll(set);
-//        repaint();
-//    }
-//
-//    public void setDlFilter(Set<Integer> set) {
-//        dlFilter.clear();
-//        dlFilter.addAll(set);
-//        repaint();
-//    }
-//
-//    public void setRot(float xr, float yr, float zr) {
-//        this.xr = xr;
-//        this.yr = yr;
-//        this.zr = zr;
-//        repaint();
-//    }
-
     private class SceneMA extends MouseAdapter {
 
         private P2 pressed;
+        private int button;
 
         @Override
         public void mouseDragged(MouseEvent e) {
             if (pressed != null) {
-                temptx.set(e.getX() - pressed.x, e.getY() - pressed.y);
-                repaint();
+                if (button == MouseEvent.BUTTON1) {
+                    temptx.set(e.getX() - pressed.x, e.getY() - pressed.y);
+                } else if (button == MouseEvent.BUTTON3) {
+                    tempRx = (float) (Math.PI / getHeight()) * (e.getY() - pressed.y);
+                    tempRy = (float) (Math.PI / getWidth()) * (e.getX() - pressed.x);
+                    tempRz = 0;
+                }
             }
+            repaint();
         }
 
         @Override
         public void mousePressed(MouseEvent e) {
-            pressed = new P2(e.getX(), e.getY());
+            if (pressed == null) {
+                pressed = new P2(e.getX(), e.getY());
+                button = e.getButton();
+            }
             //System.out.println("pressed " + pressed);
             repaint();
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            pressed = null;
-            tx.set(tx.add(temptx));
-            temptx.set(0, 0);
+            if (pressed != null) {
+                if (button == MouseEvent.BUTTON1) {
+                    tx.set(tx.add(temptx));
+                    temptx.set(0, 0);
+                } else if (button == MouseEvent.BUTTON3) {
+                    rx = rx + tempRx;
+                    ry = ry + tempRy;
+                    rz = rz + tempRz;
+                    tempRx = 0;
+                    tempRy = 0;
+                    tempRz = 0;
+                }
+                pressed = null;
+                button = MouseEvent.NOBUTTON;
+            }
             repaint();
             //System.out.println("released " + tx);
         }

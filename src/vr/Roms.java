@@ -1,16 +1,22 @@
 package vr;
 
+import vr.ui.ScanJF;
+
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.prefs.Preferences;
 
 public class Roms {
 
     public static void main(String[] args) throws Exception {
-        File romDir = new File(args[0]);
-        File outDir = new File(System.getProperty("user.dir"));
+        Preferences prefs = Preferences.userNodeForPackage(ScanJF.class);
+        File romDir = new File(prefs.get("romDir",System.getProperty("user.dir")));
+            Roms roms = new Roms(romDir);
+
+        File outDir = new File(System.getProperty("user.dir"), "out");
 
         // looks like math lookups
         //String[] dataRomFiles = new String[]{"mpr-14898.39", "mpr-14899.40", "mpr-14900.41", "mpr-14901.42"};
@@ -28,13 +34,14 @@ public class Roms {
         // it's not really possible to detect scene boundaries
         // need to do them manually, unless there are pointers in the data rom
 
-        Roms roms = new Roms(romDir);
-        writeBytes(new File(outDir, "maincpu1.bin"), roms.load(Game.vr, Bank.mainCpu1));
-        writeBytes(new File(outDir, "maincpu2.bin"), roms.load(Game.vr, Bank.mainCpu2));
-        writeBytes(new File(outDir, "maincpu3.bin"), roms.load(Game.vr, Bank.mainCpu3));
-        writeIntsBe(new File(outDir, "polygons.swap.bin"), roms.loadWords(Game.vr, Bank.polygons));
-        writeBytes(new File(outDir, "tgpdata.bin"), roms.load(Game.vr, Bank.tgpData));
-        writeIntsBe(new File(outDir, "tgpdata.swap.bin"), roms.loadWords(Game.vr, Bank.tgpData));
+        for (Game g : Game.values()) {
+            File gDir = new File(outDir, g.name());
+            gDir.mkdirs();
+            for (Bank b : Bank.values()) {
+                writeBytes(new File(gDir, b.name() + ".bin"), roms.load(g, b));
+                writeIntsBe(new File(gDir, b.name() + ".swap.bin"), roms.loadWords(g, b));
+            }
+        }
 
     }
 

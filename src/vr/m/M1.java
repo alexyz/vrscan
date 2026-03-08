@@ -151,8 +151,17 @@ public class M1 extends M {
             out.set(Math.round(x), Math.round(y));
             return out;
         } else {
-            throw new RuntimeException();
+            throw new RuntimeException("cannot convert to P2: " + this);
         }
+    }
+
+    public String toHcStr() {
+        if (a[3] == 1) {
+            return String.format("[%.2f, %.2f, %.2f]", a[0], a[1], a[2]);
+        } else {
+            return super.toString();
+        }
+
     }
 
 }

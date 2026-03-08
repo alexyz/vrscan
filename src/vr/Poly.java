@@ -15,7 +15,10 @@ public class Poly {
     public static int W_MASK = 0b0000_0001_1111_1110_0111_1111_0000_0011;
 
     public static boolean isWord(int w) {
-        return (w & W_MASK) != 0 && (w & ~W_MASK) == 0;
+        //return (w & W_MASK) != 0 && (w & ~W_MASK) == 0;
+        int t = type(w);
+        int u = w >>> 24;
+        return (u == 0 || u == 1) && (t == 1 || t == 2);
     }
 
     public static final int TYPE_Q = 1, TYPE_T = 2;
@@ -24,28 +27,40 @@ public class Poly {
         return w & 3;
     }
 
+    public static int unknown2(int w) {
+        return (w >>> 2) & 0x3f;
+    }
+
     public static int link(int w) {
-        return (w >> 8) & 3;
+        return (w >>> 8) & 3;
     }
 
     public static int zorder(int w) {
-        return (w >> 10) & 3;
+        return (w >>> 10) & 3;
     }
 
     public static int texadr(int w) {
-        return (w >> 12) & 1;
+        return (w >>> 12) & 1;
     }
 
     public static int moire(int w) {
-        return (w >> 13) & 1;
+        return (w >>> 13) & 1;
     }
 
-    public static int backface(int w) {
-        return (w >> 14) & 1;
+    public static int bfcull(int w) {
+        return (w >>> 14) & 1;
+    }
+
+    public static int unknown15(int w) {
+        return ((w >>> 15) & 3);
     }
 
     public static int lightmode(int w) {
-        return (w >> 17) & 15;
+        return (w >>> 17) & 15;
+    }
+
+    public static int unknown21(int w) {
+        return (w >>> 21);
     }
 
     public static int red(int col) {
@@ -53,11 +68,19 @@ public class Poly {
     }
 
     public static int green(int col) {
-        return ((col >> 5) & 0x1f) * 8;
+        return ((col >>> 5) & 0x1f) * 8;
     }
 
     public static int blue(int col) {
-        return ((col >> 10) & 0x1f) * 8;
+        return ((col >>> 10) & 0x1f) * 8;
+    }
+
+    public static String typeStr(int w) {
+        switch (type(w)) {
+            case TYPE_Q: return "Q";
+            case TYPE_T: return "T";
+            default: return w + "?";
+        }
     }
 
     public static Poly readPara(int[] words, int o) {
@@ -87,17 +110,36 @@ public class Poly {
         }
     }
 
+    private void app(StringBuilder sb, String k, int v) {
+        if (v != 0) {
+            sb.append(" ").append(k).append("=").append(Integer.toHexString(v));
+        }
+    }
+
     @Override
     public String toString() {
-        String ws = String.format("t=%s l=%d z=%d ta=%d m=%d bf=%d lm=%d",
-                type(word), link(word), zorder(word), texadr(word), moire(word), backface(word), lightmode(word));
+        StringBuilder sb = new StringBuilder();
+        sb.append("t=").append(typeStr(word));
+        app(sb,"un2", unknown2(word));
+        app(sb,"ln", link(word));
+        app(sb,"zo", zorder(word));
+        app(sb,"ta", texadr(word));
+        app(sb,"mo", moire(word));
+        app(sb,"bf", bfcull(word));
+        app(sb,"un15", unknown15(word));
+        app(sb,"lm", lightmode(word));
+        app(sb,"un21", unknown21(word));
+
+        String ws = sb.toString();
+//        String ws = String.format("t=%s ln=%x zo=%x ta=%x mo=%x bf=%x lm=%x",
+//                typeStr(word), link(word), zorder(word), texadr(word), moire(word), bfcull(word), lightmode(word));
 
         String cs = String.format("ta=%x tex=%x col=%x", texAddr, tex, col);
 
         if (s2.equals(s3)) {
-            return String.format("P[%8x [%s] [%s], %s, %s, -]", word, ws, cs, s1, s2);
+            return String.format("P[%8x [%s] [%s], %s, %s, -]", word, ws, cs, s1.toHcStr(), s2.toHcStr());
         } else {
-            return String.format("P[%8x [%s] [%s], %s, %s, %s]", word, ws, cs, s1, s2, s3);
+            return String.format("P[%8x [%s] [%s], %s, %s, %s]", word, ws, cs, s1.toHcStr(), s2.toHcStr(), s3.toHcStr());
         }
     }
 }

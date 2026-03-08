@@ -3,9 +3,11 @@ package vr.ui;
 import vr.*;
 
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
 import java.util.prefs.Preferences;
@@ -26,6 +28,7 @@ public class ScanJF extends JFrame {
     }
 
     public static final Font MONO = new Font(Font.MONOSPACED, Font.PLAIN, 12);
+
     private static final Preferences PREFS = Preferences.userNodeForPackage(ScanJF.class);
 
     public static void main(String[] args) {
@@ -34,7 +37,7 @@ public class ScanJF extends JFrame {
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setVisible(true);
 
-        SwingUtilities.invokeLater(() -> f.wrapEx(() -> f.initRoms()));
+        SwingUtilities.invokeLater(() -> f.wrapRun(() -> f.initRoms()).run());
     }
 
     public static String wrapStr(String msg) {
@@ -80,13 +83,14 @@ public class ScanJF extends JFrame {
         tabs.addTab("DL2", listsJp2);
         tabs.addTab("PA", paJp);
         tabs.addTab("Palette", palJp);
-        sceneCombo.addItemListener(e -> wrapEx(() -> sceneChange()));
+        sceneCombo.addItemListener(wrapItem(e -> sceneChange()));
         dirField.setText(PREFS.get("romDir", System.getProperty("user.dir")));
-        dirField.addActionListener(e -> wrapEx(() -> initRoms()));
-        startSpin.addChangeListener(e -> wrapEx(() -> customScene()));
-        lenSpin.addChangeListener(e -> wrapEx(() -> customScene()));
-        gameCombo.setSelectedItem(Game.vr);
-        gameCombo.addItemListener(e -> wrapEx(() -> initScenes()));
+        dirField.addActionListener(wrapAction(e -> initRoms()));
+        dirField.addActionListener(wrapAction(e -> initRoms()));
+        startSpin.addChangeListener(wrapChange(e -> customScene()));
+        lenSpin.addChangeListener(wrapChange(e -> customScene()));
+        gameCombo.setSelectedIndex(PREFS.getInt("game", 0));
+        gameCombo.addItemListener(wrapItem(e -> initScenes()));
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
         top.add(new JLabel("Dir"));
@@ -104,13 +108,20 @@ public class ScanJF extends JFrame {
         add(tabs, BorderLayout.CENTER);
     }
 
-    public void wrapEx(Runnable r) {
-        try {
-            r.run();
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, wrapStr(e.toString()));
-        }
+    public ActionListener wrapAction(ActionListener l) {
+        return new AL2(this, l);
+    }
+
+    public ItemListener wrapItem(ItemListener l) {
+        return new IL2(this, l);
+    }
+
+    public ChangeListener wrapChange(ChangeListener l) {
+        return new CL2(this, l);
+    }
+
+    public Runnable wrapRun(Runnable r) {
+        return new R2(this, r);
     }
 
     private void initRoms() {
@@ -124,26 +135,23 @@ public class ScanJF extends JFrame {
     private void initScenes() {
         System.out.println("init scenes");
         Game game = (Game) gameCombo.getSelectedItem();
+        PREFS.putInt("game", gameCombo.getSelectedIndex());
 
-        try {
-            polys = new Polygons().load(roms, game);
-            dlsLabel.setText(String.valueOf(polys.displayLists.size()));
-            System.out.println("polys=" + polys);
+        polys = new Polygons().load(roms, game);
+        dlsLabel.setText(String.valueOf(polys.displayLists.size()));
+        System.out.println("polys=" + polys);
 
-            paJp.setPolgons(polys);
-            palJp.setPolgons(polys);
-            listsJp2.setPolygons(polys);
+        paJp.setPolgons(polys);
+        palJp.setPolgons(polys);
+        listsJp2.setPolygons(polys);
 
-            startSpin.setModel(new SpinnerNumberModel(0, 0, polys.displayLists.size(), 1));
-            lenSpin.setModel(new SpinnerNumberModel(1, 1, polys.displayLists.size(), 1));
-            Vector<SCI> sceneItems = new Vector<>();
-            Scenes.scenes(game, polys).stream().forEach(s -> sceneItems.add(new SCI(s)));
-            sceneItems.add(new SCI(null));
-            sceneCombo.setModel(new DefaultComboBoxModel<SCI>(sceneItems));
-            sceneChange();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        startSpin.setModel(new SpinnerNumberModel(0, 0, polys.displayLists.size(), 1));
+        lenSpin.setModel(new SpinnerNumberModel(1, 1, polys.displayLists.size(), 1));
+        Vector<SCI> sceneItems = new Vector<>();
+        Scenes.scenes(game, polys).stream().forEach(s -> sceneItems.add(new SCI(s)));
+        sceneItems.add(new SCI(null));
+        sceneCombo.setModel(new DefaultComboBoxModel<SCI>(sceneItems));
+        sceneChange();
     }
 
     private void customScene() {

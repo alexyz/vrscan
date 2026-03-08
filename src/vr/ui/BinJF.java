@@ -65,7 +65,10 @@ public class BinJF extends JFrame {
     private final JComboBox<Game> gameBox = new JComboBox<>(Game.values());
     private final JComboBox<Bank> bankBox = new JComboBox<>(Bank.values());
     private final JSpinner sizeSpin = new JSpinner(new SpinnerNumberModel(32, 1, 1024000, 1));
-    private final JSpinner offsetSpin = new JSpinner(new SpinnerNumberModel(0, -16777216, 16777216, 65536));
+    private final JTextField offsetField = new JTextField(8);
+    private final JTextField offsetIncField = new JTextField(4);
+    private final JButton offsetDecButton = new JButton("<");
+    private final JButton offsetIncButton = new JButton(">");
     private final JComboBox<BinJC.Opt.Format> formatBox = new JComboBox<>(BinJC.Opt.Format.values());
     private final JCheckBox swapBox = new JCheckBox("Swap", true);
     private final BinJC binJc = new BinJC();
@@ -77,7 +80,9 @@ public class BinJF extends JFrame {
         setTitle("BinView");
         setLayout(new BorderLayout());
         sizeSpin.addChangeListener(e -> wrapEx(() -> updateView()));
-        offsetSpin.addChangeListener(e -> wrapEx(() -> updateView()));
+        offsetField.setText("0");
+        offsetIncField.setText("400");
+        offsetField.addActionListener(e -> wrapEx(() -> updateView()));
         formatBox.addItemListener(e -> wrapEx(() -> updateView()));
         swapBox.addChangeListener(e -> wrapEx(() -> updateView()));
         dirField.setText(PREFS.get("romDir", System.getProperty("user.dir")));
@@ -85,6 +90,8 @@ public class BinJF extends JFrame {
         gameBox.addItemListener(e -> wrapEx(() -> setData()));
         bankBox.addItemListener(e -> wrapEx(() -> setData()));
         saveButton.addActionListener(e -> wrapEx(() -> saveIt()));
+        offsetDecButton.addActionListener(e -> wrapEx(() -> offsetChange(-1)));
+        offsetIncButton.addActionListener(e -> wrapEx(() -> offsetChange(1)));
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
         top.add(new JLabel("Dir"));
@@ -96,12 +103,23 @@ public class BinJF extends JFrame {
         top.add(new JLabel("Size"));
         top.add(sizeSpin);
         top.add(new JLabel("Offset"));
-        top.add(offsetSpin);
+        top.add(offsetField);
+        top.add(offsetIncField);
+        top.add(offsetDecButton);
+        top.add(offsetIncButton);
         top.add(new JLabel("Format"));
         top.add(formatBox);
         top.add(swapBox);
         add(top, BorderLayout.NORTH);
         add(binJc, BorderLayout.CENTER);
+    }
+
+    private void offsetChange(int factor) {
+        int offset = getOffset();
+        int inc = Integer.parseInt(offsetIncField.getText(), 16);
+        offset += (inc*factor);
+        offsetField.setText(Integer.toHexString(offset));
+        updateView();
     }
 
     public void wrapEx(Runnable r) {
@@ -146,11 +164,16 @@ public class BinJF extends JFrame {
     private void updateView() {
         BinJC.Opt opt = new BinJC.Opt();
         opt.size = ((Number) sizeSpin.getValue()).intValue();
-        opt.offset = ((Number) offsetSpin.getValue()).intValue();
+        opt.offset = getOffset();
         opt.format = (BinJC.Opt.Format) formatBox.getSelectedItem();
         opt.swap = swapBox.isSelected();
         binJc.setParams(opt);
         repaint();
     }
+
+    private int getOffset() {
+        return (int) Long.parseLong(offsetField.getText(), 16);
+    }
 }
+
 

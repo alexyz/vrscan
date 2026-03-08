@@ -8,13 +8,13 @@ import java.util.*;
 
 public class Render {
 
-    public enum Renderer { R1, R3 }
+    public enum Renderer {R1, R3}
 
     public static class Opts {
         public P2 trans;
         public float scale = 1;
         public float xRot, yRot, zRot;
-        public boolean dispNum;
+        public boolean dispNum, dispDl;
         public Set<Integer> numFilter, dlFilter;
         public Renderer render;
 
@@ -40,7 +40,7 @@ public class Render {
         M rot = M4.rx(o.xRot).mul(M4.ry(o.yRot)).mul(M4.rz(o.zRot));
 
         // ortho projection of x,-z
-        M proj2 = new M4().set(0,0,1).set(1,2,-1).set(3,3, 1);
+        M proj2 = new M4().set(0, 0, 1).set(1, 2, -1).set(3, 3, 1);
 
         // scale to window size preserving aspect
         float sf2 = (o.scale * Math.min(w, h)) / 2f;
@@ -59,8 +59,8 @@ public class Render {
         //Graphics2D g = (Graphics2D) im.getGraphics();
         //Font bigf = new Font(Font.MONOSPACED, Font.PLAIN, 12);
 
-        Color lightBlue = new Color(128,128,255);
-        Color lightGreen = new Color(128,255,128);
+        Color lightBlue = new Color(128, 128, 255);
+        Color lightGreen = new Color(128, 255, 128);
 
 
 //        for (float x = -1; x <= 1; x += 0.5f) {
@@ -92,7 +92,7 @@ public class Render {
 
                 in = min.x < w && min.y < h && max.x >= 0 && max.y >= 0;
 
-                if (in) {
+                if (o.dispDl && in) {
                     g.setColor(Color.darkGray);
                     g.drawRect(min.x, min.y, max.x - min.x, max.y - min.y);
                     g.setColor(Color.lightGray);
@@ -110,8 +110,10 @@ public class Render {
                     P2 s3p = total2.mul(p.s3.toHc()).toP2();
 
                     int link = Poly.link(p.word);
+
                     if (link > 0) {
                         int type = Poly.type(p.word);
+
                         if (type == Poly.TYPE_Q) {
                             // draw Q
                             g.setColor(lightBlue);
@@ -122,18 +124,25 @@ public class Render {
                             } else {
                                 System.out.println(String.format("invalid Q offset %x n %d poly %s", dl.offset, n, p));
                             }
+
                         } else if (type == Poly.TYPE_T) {
+                            s3p = s2p; // s3 is 0 in netmerc
+
                             // draw T
                             g.setColor(lightGreen);
                             if (r2p != null && r3p != null) {
                                 g.drawLine(s2p.x, s2p.y, r2p.x, r2p.y);
+                                g.setColor(Color.yellow);
                                 g.drawLine(s3p.x, s3p.y, r3p.x, r3p.y);
+
                             } else {
                                 System.out.println(String.format("invalid T %x:%d", dl.offset, n));
                             }
+
                         } else {
                             throw new RuntimeException();
                         }
+
                     } else {
                         // draw line only
                         g.setColor(Color.lightGray);
@@ -148,36 +157,29 @@ public class Render {
                         //g.setColor(Color.red);
                         //g.drawString(eq ? n + "-" : n + ":2", s2p.x - 6, s2p.y - 6); // upper
                         int s2 = (s2p.x << 16) | s2p.y;
-                        nums.compute(s2, (k1,v1) -> v1 != null ? v1 : new HashSet<>()).add(n);
+                        nums.compute(s2, (k1, v1) -> v1 != null ? v1 : new HashSet<>()).add(n);
                         int s3 = (s3p.x << 16) | s3p.y;
-                        nums.compute(s3, (k1,v1) -> v1 != null ? v1 : new HashSet<>()).add(n);
+                        nums.compute(s3, (k1, v1) -> v1 != null ? v1 : new HashSet<>()).add(n);
                     }
-
-//                    if (!eq) {
-                        //g.setColor(Color.white);
-                        //g.drawOval(s3p.x - 1, s3p.y -1, 2, 2);
-//                        if (o.dispNum && (o.numFilter.size() == 0 || o.numFilter.contains(n))) {
-                            //g.setColor(Color.red);
-                            //g.drawString("" + n, s3p.x + 6, s3p.y + 6); // lower
-//                            int k2 = (s3p.x << 16) | s3p.y;
-//                            nums.compute(k2, (k1,v1) -> v1 != null ? v1 : new ArrayList<>()).add(n);
-//                        }
-//                    }
 
                     switch (link) {
                         case 0:
                         case 2:
-                            r2p = s2p; r3p = s3p; break;
+                            r2p = s2p;
+                            r3p = s3p;
+                            break;
                         case 1:
-                            r3p = s2p; break;
+                            r3p = s2p;
+                            break;
                         case 3:
-                            r2p = s3p; break;
+                            r2p = s3p;
+                            break;
                     }
                 }
             }
         }
 
-        for (Map.Entry<Integer,Set<Integer>> e : nums.entrySet()) {
+        for (Map.Entry<Integer, Set<Integer>> e : nums.entrySet()) {
             int x = (e.getKey() >> 16) & 0xfff;
             int y = e.getKey() & 0xfff;
             g.setColor(Color.red);

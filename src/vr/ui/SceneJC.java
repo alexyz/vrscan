@@ -41,9 +41,11 @@ public class SceneJC extends JComponent {
         g.setColor(Color.black);
         g.fillRect(0, 0, w, h);
         g.setColor(Color.white);
-        g.drawString("w=" + w + " h=" + h, 12, 48);
-        g.drawString("tx=" + tx + " temptx=" + temptx + " zf=" + zoom, 12, 60);
-        g.drawString(String.format("r=%.2f,%.2f,%.2f tr=%.2f,%.2f,%.2f", rx, ry, rz, tempRx, tempRy, tempRz), 12, 72);
+        int ys = 48;
+        g.drawString("w=" + w + " h=" + h, 12, ys += 16);
+        g.drawString("tx=" + tx.add(temptx), 12, ys += 16);
+        g.drawString("zf=" + zoom, 12, ys += 16);
+        g.drawString(String.format("r=%.2f, %.2f, %.2f", Math.toDegrees(rx+tempRx), Math.toDegrees(ry+tempRy), Math.toDegrees(rz+tempRz)), 12, ys+=16);
 
         if (scene != null && opts != null) {
 //            Render.Opts o = new Render.Opts();
@@ -85,6 +87,15 @@ public class SceneJC extends JComponent {
 
     public void setOpts(Render.Opts opts) {
         this.opts = opts;
+        repaint();
+    }
+
+    public void reset() {
+        tx.set(0,0);
+        rx = 0;
+        ry = 0;
+        rz = 0;
+        zoom = 1;
         repaint();
     }
 

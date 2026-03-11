@@ -1,39 +1,36 @@
 package vr.ui;
 
 import vr.DL;
-import vr.Poly;
 import vr.Scene;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Vector;
 
-public class DLJP extends JPanel {
+public class DLTJP extends JPanel {
 
     private final JComboBox<DLCI> dlCombo = new JComboBox<>();
-    private final JTextArea area = new JTextArea();
-    private Scene s;
+    private final JTable table = new JTable();
 
-    public DLJP() {
+    public DLTJP() {
         super(new BorderLayout());
         dlCombo.addItemListener(new DLIL());
-        area.setEditable(false);
-        area.setWrapStyleWord(false);
-        area.setFont(ScanJF.MONO);
+        table.setDefaultRenderer(Object.class,new PolyCR());
+        table.setAutoCreateRowSorter(true);
 
         JPanel top = new JPanel(new FlowLayout());
         top.add(new JLabel("DL"));
         top.add(dlCombo);
-        JScrollPane areaPane = new JScrollPane(area, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        JScrollPane areaPane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         add(top, BorderLayout.NORTH);
         add(areaPane, BorderLayout.CENTER);
     }
 
 
     public void setScene(Scene s) {
-        this.s = s;
         Vector<DLCI> list = new Vector<>();
         list.add(new DLCI(null));
         s.dls.stream().map(l -> new DLCI(l)).forEach(i -> list.add(i));
@@ -55,20 +52,11 @@ public class DLJP extends JPanel {
     }
 
     private void updateArea(DL dl) {
-        StringBuilder sb = new StringBuilder();
         if (dl != null) {
-            sb.append(dl).append("\n");
-            for (int n = 0; n < dl.polys.size(); n++) {
-                Poly p = dl.polys.get(n);
-                sb.append(String.format("%-3d: %s", n, p.toString())).append("\n");
-            }
+            table.setModel(new DLTM(dl));
         } else {
-            for (DL dl2 : s.dls) {
-                sb.append(dl2).append("\n");
-            }
+            table.setModel(new DefaultTableModel());
         }
-        area.setText(sb.toString());
-        area.setCaretPosition(0);
         repaint();
     }
 }

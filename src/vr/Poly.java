@@ -5,20 +5,21 @@ import vr.m.*;
 import java.awt.*;
 
 public class Poly {
-    // 00 82 29 01
-    //  1 54 06 01 (nm)
-    //  1 f8 07 02 (nm)
-    /**
-     * 0000 000U | UUUL LLL0 | 0BMT ZZLL | 0000 00TT
+    /*
+     * 0000 000L | LNNI III0 | 0BMT ZZLL | 0000 00TT
+     * T = type
+     * L = link, link2
+     * I = lightmode
+     * N = netmerc
      * U = unknown
      */
-    public static int W_MASK = 0b0000_0001_1111_1110_0111_1111_0000_0011;
 
+    /***
+     * note the only flag that must be non-zero is type
+     */
     public static boolean isWord(int w) {
-        //return (w & W_MASK) != 0 && (w & ~W_MASK) == 0;
         int t = type(w);
-        int u = w >>> 24;
-        return (u == 0 || u == 1) && (t == 1 || t == 2);
+        return unknown(w) == 0 && (t == 1 || t == 2) && link(w) == link2(w);
     }
 
     public static final int TYPE_Q = 1, TYPE_T = 2;
@@ -27,8 +28,9 @@ public class Poly {
         return w & 3;
     }
 
-    public static int unknown2(int w) {
-        return (w >>> 2) & 0x3f;
+    /** always 0 */
+    public static int unknown(int w) {
+        return w & 0xfe0180fc;
     }
 
     public static int link(int w) {
@@ -51,16 +53,16 @@ public class Poly {
         return (w >>> 14) & 1;
     }
 
-    public static int unknown15(int w) {
-        return ((w >>> 15) & 3);
-    }
-
     public static int lightmode(int w) {
         return (w >>> 17) & 15;
     }
 
-    public static int unknown21(int w) {
-        return (w >>> 21);
+    public static int netmerc(int w) {
+        return (w >>> 21) & 3;
+    }
+
+    public static int link2(int w) {
+        return (w >>> 23) & 3;
     }
 
     public static int red(int col) {
@@ -120,15 +122,14 @@ public class Poly {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("t=").append(typeStr(word));
-        app(sb,"un2", unknown2(word));
         app(sb,"ln", link(word));
         app(sb,"zo", zorder(word));
         app(sb,"ta", texadr(word));
         app(sb,"mo", moire(word));
         app(sb,"bf", bfcull(word));
-        app(sb,"un15", unknown15(word));
         app(sb,"lm", lightmode(word));
-        app(sb,"un21", unknown21(word));
+        app(sb,"nm", netmerc(word));
+        app(sb,"un", unknown(word));
 
         String ws = sb.toString();
 //        String ws = String.format("t=%s ln=%x zo=%x ta=%x mo=%x bf=%x lm=%x",

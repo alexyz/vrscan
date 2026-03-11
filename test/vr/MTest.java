@@ -46,6 +46,7 @@ public class MTest {
 
     public void romtest() {
         for (Game g : Game.values()) {
+            System.out.println("game " + g);
             for (Bank b : Bank.values()) {
                 assertNotNull(roms.load(g,b));
                 assertNotNull(roms.loadHalfWords(g,b));

@@ -164,4 +164,7 @@ public class M1 extends M {
 
     }
 
+    public boolean isZeroHc() {
+        return a[0] == 0 && a[1] == 0 && a[2] == 0 && a[3] == 1;
+    }
 }

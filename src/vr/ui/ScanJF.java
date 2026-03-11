@@ -3,10 +3,7 @@ package vr.ui;
 import vr.*;
 
 import javax.swing.*;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.List;
 import java.util.Vector;
@@ -28,7 +25,6 @@ public class ScanJF extends JFrame {
     }
 
     public static final Font MONO = new Font(Font.MONOSPACED, Font.PLAIN, 12);
-
     private static final Preferences PREFS = Preferences.userNodeForPackage(ScanJF.class);
 
     public static void main(String[] args) {
@@ -36,8 +32,9 @@ public class ScanJF extends JFrame {
         f.pack();
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setVisible(true);
+        CL.comp = f;
 
-        SwingUtilities.invokeLater(() -> f.wrapRun(() -> f.initRoms()).run());
+        SwingUtilities.invokeLater(() -> CL.runnable(() -> f.initRoms()).run());
     }
 
     public static String wrapStr(String msg) {
@@ -62,6 +59,7 @@ public class ScanJF extends JFrame {
     private final JTabbedPane tabs = new JTabbedPane(JTabbedPane.TOP);
     private final DLJP listsJp = new DLJP();
     private final DLJP2 listsJp2 = new DLJP2();
+    private final DLTJP listsJp3 = new DLTJP();
     private final PAJP paJp = new PAJP();
     private final PalJP palJp = new PalJP();
     private final JComboBox<Game> gameCombo = new JComboBox<>(Game.values());
@@ -81,16 +79,17 @@ public class ScanJF extends JFrame {
         tabs.addTab("View", sceneJp);
         tabs.addTab("DL", listsJp);
         tabs.addTab("DL2", listsJp2);
+        tabs.addTab("DL3", listsJp3);
         tabs.addTab("PA", paJp);
         tabs.addTab("Palette", palJp);
-        sceneCombo.addItemListener(wrapItem(e -> sceneChange()));
+        sceneCombo.addItemListener(CL.itemListener(e -> sceneChange()));
         dirField.setText(PREFS.get("romDir", System.getProperty("user.dir")));
-        dirField.addActionListener(wrapAction(e -> initRoms()));
-        dirField.addActionListener(wrapAction(e -> initRoms()));
-        startSpin.addChangeListener(wrapChange(e -> customScene()));
-        lenSpin.addChangeListener(wrapChange(e -> customScene()));
+        dirField.addActionListener(CL.actionListener(e -> initRoms()));
+        dirField.addActionListener(CL.actionListener(e -> initRoms()));
+        startSpin.addChangeListener(CL.changeListener(e -> customScene()));
+        lenSpin.addChangeListener(CL.changeListener(e -> customScene()));
         gameCombo.setSelectedIndex(PREFS.getInt("game", 0));
-        gameCombo.addItemListener(wrapItem(e -> initScenes()));
+        gameCombo.addItemListener(CL.itemListener(e -> initScenes()));
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
         top.add(new JLabel("Dir"));
@@ -106,22 +105,6 @@ public class ScanJF extends JFrame {
         top.add(dlsLabel);
         add(top, BorderLayout.NORTH);
         add(tabs, BorderLayout.CENTER);
-    }
-
-    public ActionListener wrapAction(ActionListener l) {
-        return new AL2(this, l);
-    }
-
-    public ItemListener wrapItem(ItemListener l) {
-        return new IL2(this, l);
-    }
-
-    public ChangeListener wrapChange(ChangeListener l) {
-        return new CL2(this, l);
-    }
-
-    public Runnable wrapRun(Runnable r) {
-        return new R2(this, r);
     }
 
     private void initRoms() {
@@ -177,6 +160,7 @@ public class ScanJF extends JFrame {
         sceneJp.setScene(s);
         listsJp.setScene(s);
         listsJp2.setScene(s);
+        listsJp3.setScene(s);
         repaint();
     }
 

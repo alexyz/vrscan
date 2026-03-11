@@ -24,7 +24,7 @@ public class Polygons {
         this.colors = initColors();
 
         // load display lists...
-        this.displayLists = loadDisplayLists(roms.loadWords(g, Bank.polygons));
+        this.displayLists = loadDisplayLists(roms.loadWords(g, Bank.polygons), g);
 
         // copy pa into dl
         for (DL dl : displayLists) {
@@ -135,42 +135,69 @@ public class Polygons {
     }
 
     /**
-     * look through the polygon roms to find things that look like polygon data (repeated 10 word structure) grouped into display lists.
+     * look through the polygon roms to find things that look like display lists.
+     * a poly starts with a control word, though a DL (sometimes) starts with 6 words then list of polys
      */
-    private List<DL> loadDisplayLists(int[] romWords) {
+    private List<DL> loadDisplayLists(int[] romWords, Game g) {
         List<DL> lists = new ArrayList<>();
         boolean newlist = true;
         int ord = 0;
 
-        for (int wp = 0; wp < romWords.length; ) {
-            int w = romWords[wp];
+        int sp;
+        switch (g) {
+            case Game.wingwar: sp = 0x124; break;
+            case Game.vr: sp = 0xb58; break;
+            default: sp = 0; break;
+        }
+
+        for (int n = sp >>> 2; n < romWords.length; ) {
+            int w = romWords[n];
+            int wp = n << 2;
+
             if (w == 0 || w == -1) {
                 newlist = true;
-                wp++;
+
+                // swa has a lot of orphaned 6 word values
+                // void model1_state::push_object(uint32_t tex_adr, uint32_t poly_adr, uint32_t size)
+                //   poly_adr += 6; ...
+                if ((g == Game.swa || g == Game.wingwar) && n+7 < romWords.length && Poly.isWord(romWords[n+7])) {
+                    System.out.println(String.format("skip %s offset %x word %x", g, wp, w));
+                    n += 7;
+                } else {
+                    n++;
+                }
 
             } else if (Poly.isWord(w)) {
-                Poly p = Poly.readPara(romWords, wp);
+                Poly p = Poly.readPara(romWords, n);
                 if (isDummy(p)) {
                     //System.out.println(String.format("dummy p %x", wp * 4));
                     newlist = true;
 
                 } else {
                     if (w == 1) {
-                        newlist = true; // netmerc, but doesn't work well
+                        newlist = true; // todo netmerc, but doesn't work well. without this can see entire map
                     }
                     if (newlist) {
-                        lists.add(new DL(ord, wp * 4));
+                        lists.add(new DL(ord, n * 4));
                         newlist = false;
                         ord++;
                     }
                     lists.get(lists.size() - 1).polys.add(p);
-                    //System.out.println(String.format("p %6x %s", wp * 4, readParaStr(outw, wp)));
                 }
-                wp += 10;
+                n += 10;
+
+            } else if (g == Game.wingwar && Poly.isWord(romWords[n+1])) {
+                // good old wingwar
+                n++;
 
             } else {
-                System.out.println(String.format("unknown offset %x word %x", wp * 4, w));
-                break;
+                String msg = String.format("unknown %s offset %x word %x t=%x l=%x z=%x ta=%x m=%x bf=%x lm=%x l2=%x u=%x",
+                        g, wp, w,
+                        Poly.type(w), Poly.link(w), Poly.zorder(w), Poly.texadr(w),
+                        Poly.moire(w), Poly.bfcull(w), Poly.lightmode(w), Poly.link2(w),
+                        Poly.unknown(w));
+                System.out.println(msg);
+                throw new RuntimeException(msg);
             }
         }
         return lists;

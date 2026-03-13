@@ -7,6 +7,12 @@ import java.util.Arrays;
  */
 public abstract class M {
 
+    protected final float[] a;
+
+    protected M(float[] a) {
+        this.a = a;
+    }
+
     public abstract int nc();
 
     public abstract int nr();
@@ -17,20 +23,18 @@ public abstract class M {
 
     public P2 toP2() { throw new RuntimeException(); }
 
-    public abstract float[] values();
-
     public M set(int r, int c, float v) {
-        values()[index(r, c)] = v;
+        a[index(r, c)] = v;
         return this;
     }
 
     public float get(int r, int c) {
-        return values()[index(r, c)];
+        return a[index(r, c)];
     }
 
     public M setAll(float... v) {
-        if (v.length == values().length) {
-            System.arraycopy(v, 0, values(), 0, v.length);
+        if (a.length == v.length) {
+            System.arraycopy(v, 0, a, 0, v.length);
             return this;
         } else {
             throw new RuntimeException();
@@ -53,11 +57,11 @@ public abstract class M {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof M m && Arrays.equals(values(), m.values());
+        return obj instanceof M m && Arrays.equals(a, m.a);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(values());
+        return Arrays.hashCode(a);
     }
 }

@@ -139,63 +139,113 @@ public class Polygons {
      * a poly starts with a control word, though a DL (sometimes) starts with 6 words then list of polys
      */
     private List<DL> loadDisplayLists(int[] romWords, Game g) {
-        List<DL> lists = new ArrayList<>();
-        boolean newlist = true;
-        int ord = 0;
-
-        int sp;
         switch (g) {
-            case Game.wingwar: sp = 0x124; break;
-            case Game.vr: sp = 0xb58; break;
-            default: sp = 0; break;
+            case Game.wingwar:
+                return loadDisplayListsWingwar(romWords, g);
+            default:
+                return loadDisplayListsAny(romWords, g);
         }
+    }
 
-        for (int n = sp >>> 2; n < romWords.length; ) {
+    private List<DL> loadDisplayListsAny(int[] romWords, Game g) {
+        List<DL> lists = new ArrayList<>();
+        boolean newlist = true, pre = false;
+        int ord = 0;
+        DL dl = null;
+
+        for (int n = 0; n < romWords.length; ) {
             int w = romWords[n];
-            int wp = n << 2;
 
             if (w == 0 || w == -1) {
                 newlist = true;
+                n++;
 
-                // swa has a lot of orphaned 6 word values
-                // void model1_state::push_object(uint32_t tex_adr, uint32_t poly_adr, uint32_t size)
-                //   poly_adr += 6; ...
-                if ((g == Game.swa || g == Game.wingwar) && n+7 < romWords.length && Poly.isWord(romWords[n+7])) {
-                    System.out.println(String.format("skip %s offset %x word %x", g, wp, w));
-                    n += 7;
-                } else {
-                    n++;
+                if (n < romWords.length && Poly.isWord(romWords[n])) {
+                    pre = false;
+                } else if (n + 6 < romWords.length && Poly.isWord(romWords[n + 6])) {
+                    n += 6;
+                    pre = true;
                 }
 
             } else if (Poly.isWord(w)) {
-                Poly p = Poly.readPara(romWords, n);
-                if (isDummy(p)) {
-                    //System.out.println(String.format("dummy p %x", wp * 4));
-                    newlist = true;
+                if (w == 1) {
+                    newlist = true; // netmerc doesn't use nulls to separate lists
+                }
+
+                if (newlist) {
+                    lists.add(dl = new DL(ord++, n * 4));
+                    if (pre) {
+                        dl.polys.add(Poly.readPrePoly(romWords, n - 6));
+                        pre = false;
+                    }
+                    newlist = false;
+                }
+                dl.polys.add(Poly.readPara(romWords, n));
+                n += 10;
+
+            } else {
+                String msg = String.format("unknown %s offset %x word %x", g, n << 2, w);
+                System.out.println(msg);
+                throw new RuntimeException(msg);
+            }
+        }
+
+        return lists;
+    }
+
+    private List<DL> loadDisplayListsWingwar(int[] romWords, Game g) {
+        List<DL> lists = new ArrayList<>();
+        boolean newlist = true;
+        int ord = 0;
+        DL dl = null;
+
+        for (int n = 6; n < romWords.length; ) {
+            int w = romWords[n];
+
+            if (w == 0) {
+                newlist = true;
+                n++;
+                if (Poly.isWord(romWords[n])) {
+                    // missing pre poly
+                    System.out.println(String.format("imm %s offset %x", g, n << 2));
 
                 } else {
-                    if (w == 1) {
-                        newlist = true; // todo netmerc, but doesn't work well. without this can see entire map
+                    // end of section
+                    while (n < romWords.length && romWords[n] == -1) {
+                        n++;
                     }
+                    // pre poly
+                    n += 6;
+                }
+
+            } else if (Poly.isWord(w)) {
+                // 0000 000L | LNNI III0 | 0BMT ZZLL | 0000 00TT
+                // w == 0x85001 || w == 0x25001 || w == 0x21001 || w == 0x5001 || w == 0x1001
+                if (Poly.type(w) == Poly.TYPE_Q
+                        && Poly.link(w) == 0
+                        && romWords[n + 4] == 0
+                        && (Poly.isWord(romWords[n + 11]) || romWords[n + 11] == -1)) {
+                    // well it starts with a control word, but there's a very suspicious null
+                    // [and 6 word pre poly, and another control word...]
+                    n += 4;
+
+                } else {
+                    Poly p = Poly.readPara(romWords, n);
                     if (newlist) {
-                        lists.add(new DL(ord, n * 4));
+                        lists.add(dl = new DL(ord, n * 4));
+                        dl.polys.add(Poly.readPrePoly(romWords, n - 6));
                         newlist = false;
                         ord++;
                     }
-                    lists.get(lists.size() - 1).polys.add(p);
+                    dl.polys.add(p);
+                    n += 10;
                 }
-                n += 10;
-
-            } else if (g == Game.wingwar && Poly.isWord(romWords[n+1])) {
-                // good old wingwar
-                n++;
 
             } else {
-                String msg = String.format("unknown %s offset %x word %x t=%x l=%x z=%x ta=%x m=%x bf=%x lm=%x l2=%x u=%x",
-                        g, wp, w,
-                        Poly.type(w), Poly.link(w), Poly.zorder(w), Poly.texadr(w),
-                        Poly.moire(w), Poly.bfcull(w), Poly.lightmode(w), Poly.link2(w),
-                        Poly.unknown(w));
+                if (dl.polys.size() > 0) {
+                    System.out.println(String.format("prev: %s", dl.polys.getLast()));
+                }
+                String msg = String.format("unknown %s offset %x word %x", g, n << 2, w);
                 System.out.println(msg);
                 throw new RuntimeException(msg);
             }

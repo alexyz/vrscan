@@ -6,8 +6,9 @@ import vr.m.M4;
 import vr.ui.ScanJF;
 
 import java.io.File;
-import java.util.Objects;
+import java.util.*;
 import java.util.prefs.Preferences;
+import java.util.stream.Stream;
 
 public class MTest {
 
@@ -21,7 +22,7 @@ public class MTest {
     }
 
     public static void assertEquals(Object o1, Object o2) {
-        if (!Objects.equals(o1,o2)) {
+        if (!Objects.equals(o1, o2)) {
             throw new RuntimeException();
         }
     }
@@ -38,6 +39,12 @@ public class MTest {
         }
     }
 
+    public static void assertNotEmpty(Collection<?> c) {
+        if (c == null || c.size() == 0) {
+            throw new RuntimeException();
+        }
+    }
+
     private Roms roms;
 
     public void setUp() {
@@ -48,17 +55,22 @@ public class MTest {
         for (Game g : Game.values()) {
             System.out.println("game " + g);
             for (Bank b : Bank.values()) {
-                assertNotNull(roms.load(g,b));
-                assertNotNull(roms.loadHalfWords(g,b));
-                assertNotNull(roms.loadWords(g,b));
+                assertNotNull(roms.load(g, b));
+                assertNotNull(roms.loadHalfWords(g, b));
+                assertNotNull(roms.loadWords(g, b));
             }
             Polygons p = new Polygons().load(roms, g);
-            assertNotNull(p.displayLists);
+            assertNotEmpty(p.displayLists);
             assertNotNull(p.polyAddrs);
             assertTrue(p.colors.length > 0);
             assertTrue(p.palette.length > 0);
             assertTrue(p.textures.length > 0);
-            assertNotNull(Scenes.scenes(g,p));
+            assertNotNull(Scenes.scenes(g, p));
+
+            List<M1> mlist = p.displayLists.stream().flatMap(dl -> dl.polys.stream().flatMap(p2 -> Stream.of(p2.s1, p2.s2, p2.s3))).toList();
+            HashSet<M1> hset = new HashSet<>(mlist.size() * 2);
+            hset.addAll(mlist);
+            System.out.println("mlist=" + mlist.size() + " hset=" + hset.size());
         }
     }
 

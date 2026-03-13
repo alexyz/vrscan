@@ -122,7 +122,7 @@ public class Render {
                                 g.drawLine(s2p.x, s2p.y, r2p.x, r2p.y);
                                 g.drawLine(s3p.x, s3p.y, r3p.x, r3p.y);
                             } else {
-                                System.out.println(String.format("invalid Q offset %x n %d poly %s", dl.offset, n, p));
+                                System.out.println(String.format("invalid Q offset %x n %d", dl.offset, n));
                             }
 
                         } else if (type == Poly.TYPE_T) {
@@ -136,7 +136,7 @@ public class Render {
                                 g.drawLine(s3p.x, s3p.y, r3p.x, r3p.y);
 
                             } else {
-                                System.out.println(String.format("invalid T %x:%d", dl.offset, n));
+                                System.out.println(String.format("invalid T offset %x n %d", dl.offset, n));
                             }
 
                         } else {

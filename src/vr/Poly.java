@@ -88,9 +88,19 @@ public class Poly {
     public static Poly readPara(int[] words, int o) {
         Poly p = new Poly();
         p.word = words[o];
+        p.addr = o*4;
         readSeg(words, o + 1, p.s1);
         readSeg(words, o + 4, p.s2);
         readSeg(words, o + 7, p.s3);
+        return p;
+    }
+
+    public static Poly readPrePoly(int[] words, int o) {
+        Poly p = new Poly();
+        p.word = Poly.TYPE_Q; // probably
+        p.addr = o*4;
+        readSeg(words, o + 0, p.s2);
+        readSeg(words, o + 3, p.s3);
         return p;
     }
 
@@ -98,7 +108,7 @@ public class Poly {
         f.setHc(Float.intBitsToFloat(w[o]), Float.intBitsToFloat(w[o + 1]), Float.intBitsToFloat(w[o + 2]));
     }
 
-    public int word;
+    public int word, addr;
     public int texAddr, tex, col;
     public Color colObj;
     public final M1 s1 = new M1(), s2 = new M1(), s3 = new M1();
@@ -138,9 +148,9 @@ public class Poly {
         String cs = String.format("ta=%x tex=%x col=%x", texAddr, tex, col);
 
         if (s2.equals(s3)) {
-            return String.format("P[%8x [%s] [%s], %s, %s, -]", word, ws, cs, s1.toHcStr(), s2.toHcStr());
+            return String.format("P[%x: %x [%s] [%s], %s, %s, -]", addr, word, ws, cs, s1.toHcStr(), s2.toHcStr());
         } else {
-            return String.format("P[%8x [%s] [%s], %s, %s, %s]", word, ws, cs, s1.toHcStr(), s2.toHcStr(), s3.toHcStr());
+            return String.format("P[%x: %x [%s] [%s], %s, %s, %s]", addr, word, ws, cs, s1.toHcStr(), s2.toHcStr(), s3.toHcStr());
         }
     }
 }

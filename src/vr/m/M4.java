@@ -59,7 +59,9 @@ public class M4 extends M {
         return m;
     }
 
-    public final float[] a = new float[16];
+    public M4() {
+        super(new float[16]);
+    }
 
     @Override
     public int nc() {
@@ -69,11 +71,6 @@ public class M4 extends M {
     @Override
     public int nr() {
         return 4;
-    }
-
-    @Override
-    public float[] values() {
-        return a;
     }
 
     public int index(int r, int c) {

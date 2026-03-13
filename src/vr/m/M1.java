@@ -3,13 +3,24 @@ package vr.m;
 /**
  * 4x1 vector
  */
-public class M1 extends M {
+public class M1 extends M implements Comparable<M1> {
 
     public M1() {
-        //
+        super(new float[4]);
     }
 
-    public final float[] a = new float[4];
+    @Override
+    public int compareTo(M1 o) {
+        return (int) Math.signum(hypotHc() - o.hypotHc());
+    }
+
+    public float hypotHc() {
+        if (a[3] == 1) {
+            return (float) Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+        } else {
+            return 0;
+        }
+    }
 
     @Override
     public int index(int r, int c) {
@@ -18,11 +29,6 @@ public class M1 extends M {
         } else {
             return -1;
         }
-    }
-
-    @Override
-    public float[] values() {
-        return a;
     }
 
     @Override
@@ -95,12 +101,16 @@ public class M1 extends M {
         throw new RuntimeException();
     }
 
-    /** F3 with maximum values */
+    /**
+     * F3 with maximum values
+     */
     public M1 setMaxHc() {
         return setHc(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
     }
 
-    /** F3 with minimum values */
+    /**
+     * F3 with minimum values
+     */
     public M1 setMinHc() {
         return setHc(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
     }
